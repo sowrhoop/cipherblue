@@ -283,8 +283,23 @@ toggle-container-domain-userns-creation:
         echo "Module $MODULE_NAME disabled. Container domain userns enabled."
     else
         echo "Module $MODULE_NAME is not currently enabled. Enabling the hardening, disabling container domain userns (e.g. for distrobox)."
+
+        echo 'Warning: This will stop ALL containers and shut down podman.'
+        read -p 'Are you sure you want to do this? (y/N) ' proceed
+        if ! [[ "$proceed" == [Yy]* ]]; then
+            echo "Aborting..."
+            exit 0
+        fi
+
+        podman stop --all
+        killall -u "$USER" catatonit
+
         semodule --enable="$MODULE_NAME"
         echo "Module $MODULE_NAME enabled. Container domain userns disabled."
+
+        if pgrep -u root -a -x catatonit &> /dev/null; then
+            echo 'WARNING: Catatonit running as root detected, reboot your machine to reset podman state.'
+        fi
     fi
 
 # Toggle MAC Randomization
