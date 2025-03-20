@@ -62,11 +62,11 @@ override-enable-module mod_name:
     #! /bin/run0 /bin/bash
     MOD_NAME="{{ mod_name }}"
     MOD_FILE="/etc/modprobe.d/99-$MOD_NAME.conf"
-    if test -e $MOD_FILE; then
+    if [ -e "$MOD_FILE" ]; then
       echo "$MOD_NAME module is already enabled."
     else
       sh -c 'echo "install $1 /sbin/modprobe --ignore-install $1" >> "$2"' _ "$MOD_NAME" "$MOD_FILE"
-      chmod 644 $MOD_FILE
+      chmod 644 "$MOD_FILE"
       echo "Override created to enable $MOD_NAME module. Reboot to take effect."
     fi
 
@@ -75,8 +75,8 @@ override-reset-module mod_name:
     #! /bin/run0 /bin/bash
     MOD_NAME="{{ mod_name }}"
     MOD_FILE="/etc/modprobe.d/99-$MOD_NAME.conf"
-    if test -e $MOD_FILE; then
-      rm -f $MOD_FILE
+    if [ -e "$MOD_FILE" ]; then
+      rm -f "$MOD_FILE"
       echo "The override for $MOD_NAME module has been reset. Reboot to take effect."
     else
       echo "No override found for $MOD_NAME module."
@@ -147,21 +147,21 @@ toggle-gnome-extensions:
 toggle-xwayland ACTION="prompt":
     #! /bin/run0 /bin/bash
     source /usr/lib/ujust/ujust.sh
-    OPTION={{ ACTION }}
-    if [ "$OPTION" == "prompt" ]; then
+    OPTION="{{ ACTION }}"
+    if [ "$OPTION" = "prompt" ]; then
       IMAGE="$(rpm-ostree status | grep '●')"
-      if [ -n "$(echo $IMAGE | grep 'silverblue')" ] ; then
+      if echo "$IMAGE" | grep -q 'silverblue'; then
           OPTION=gnome
-      elif [ -n "$(echo $IMAGE | grep 'kinoite')" ] ; then
+      elif echo "$IMAGE" | grep -q 'kinoite'; then
           OPTION=plasma
-      elif [ -n "$(echo $IMAGE | grep 'sericea')" ] || [ -n "$(echo $IMAGE | grep 'sway')" ] ; then
+      elif echo "$IMAGE" | grep -qE 'sericea|sway'; then
           OPTION=sway
       else
-        echo "${bold}Toggling Xwayland (requires logout)${normal}"
+        echo "${bold}Toggling Xwayland (requires logout)${unbold}"
         echo 'For which DE/WM do you want to toggle Xwayland?'
         OPTION=$(ugum choose "GNOME" "KDE Plasma" "Sway")
       fi
-    elif [ "$OPTION" == "help" ]; then
+    elif [ "$OPTION" = "help" ]; then
       echo "Usage: ujust toggle-xwayland <option>"
       echo "  <option>: Specify the quick option - 'gnome', 'plasma', or 'sway'"
       echo "  Use 'gnome' to Toggle Xwayland for GNOME."
@@ -169,34 +169,34 @@ toggle-xwayland ACTION="prompt":
       echo "  Use 'sway' to Toggle Xwayland for Sway."
       exit 0
     fi
-    if [ "${OPTION,,}" == "gnome" ]; then
-      GNOME_XWAYLAND_FILE="/etc/systemd/user/org.gnome.Shell@wayland.service.d/override.conf"
-      if test -e $GNOME_XWAYLAND_FILE; then
-        rm -f $GNOME_XWAYLAND_FILE
-        echo "Xwayland for GNOME has been enabled."
+    if [ "${OPTION,,}" = "gnome" ]; then
+      GNOME_XWAYLAND_FILE='/etc/systemd/user/org.gnome.Shell@wayland.service.d/override.conf'
+      if [ -e "$GNOME_XWAYLAND_FILE" ]; then
+        rm -f "$GNOME_XWAYLAND_FILE"
+        echo 'Xwayland for GNOME has been enabled.'
       else
-        cp /usr$GNOME_XWAYLAND_FILE $GNOME_XWAYLAND_FILE
-        chmod 644 $GNOME_XWAYLAND_FILE
-        echo "Xwayland for GNOME has been disabled."
+        cp "/usr$GNOME_XWAYLAND_FILE" "$GNOME_XWAYLAND_FILE"
+        chmod 644 "$GNOME_XWAYLAND_FILE"
+        echo 'Xwayland for GNOME has been disabled.'
       fi
-    elif [ "$OPTION" == "KDE Plasma" ] || [ "${OPTION,,}" == "plasma" ]; then
-      PLASMA_XWAYLAND_FILE="/etc/systemd/user/plasma-kwin_wayland.service.d/override.conf"
-      if test -e $PLASMA_XWAYLAND_FILE; then
-        rm -f $PLASMA_XWAYLAND_FILE
-        echo "Xwayland for KDE Plasma has been enabled."
+    elif [ "$OPTION" = "KDE Plasma" ] || [ "${OPTION,,}" = "plasma" ]; then
+      PLASMA_XWAYLAND_FILE='/etc/systemd/user/plasma-kwin_wayland.service.d/override.conf'
+      if [ -e "$PLASMA_XWAYLAND_FILE" ]; then
+        rm -f "$PLASMA_XWAYLAND_FILE"
+        echo 'Xwayland for KDE Plasma has been enabled.'
       else
-        cp /usr$PLASMA_XWAYLAND_FILE $PLASMA_XWAYLAND_FILE
-        chmod 644 $PLASMA_XWAYLAND_FILE
-        echo "Xwayland for KDE Plasma has been disabled."
+        cp "/usr$PLASMA_XWAYLAND_FILE" "$PLASMA_XWAYLAND_FILE"
+        chmod 644 "$PLASMA_XWAYLAND_FILE"
+        echo 'Xwayland for KDE Plasma has been disabled.'
       fi
-    elif [ "${OPTION,,}" == "sway" ]; then
-      SWAY_XWAYLAND_FILE="/etc/sway/config.d/99-noxwayland.conf"
-      if test -e $SWAY_XWAYLAND_FILE; then
-        rm -f $SWAY_XWAYLAND_FILE
-        echo "Xwayland for Sway has been enabled."
+    elif [ "${OPTION,,}" = "sway" ]; then
+      SWAY_XWAYLAND_FILE='/etc/sway/config.d/99-noxwayland.conf'
+      if [ -e "$SWAY_XWAYLAND_FILE" ]; then
+        rm -f "$SWAY_XWAYLAND_FILE"
+        echo 'Xwayland for Sway has been enabled.'
       else
-        cp /usr$SWAY_XWAYLAND_FILE $SWAY_XWAYLAND_FILE
-        chmod 644 $SWAY_XWAYLAND_FILE
+        cp "/usr$SWAY_XWAYLAND_FILE" "$SWAY_XWAYLAND_FILE"
+        chmod 644 "$SWAY_XWAYLAND_FILE"
         echo "Xwayland for Sway has been disabled."
       fi
     fi
@@ -204,11 +204,14 @@ toggle-xwayland ACTION="prompt":
 # Toggle bash environment lockdown (mitigates LD_PRELOAD attacks)
 toggle-bash-environment-lockdown skip_approval="false" apply_for_all_users="prompt":
     #!/bin/run0 /bin/bash
-    set -eou pipefail
+    set -euo pipefail
+    source /usr/lib/ujust/libformatting.sh
 
-    # The below function fetch the minimium and maximium UIDS as configured in /etc/login.defs. Any UIDs within this change are true user ids
-    # rather than system agents, and therefore should be locked down. The user_string variable uses this fetched UID range to find all existing
-    # users and their home directory along with formatting this data for later use. The IFS line simply converts this data into a bash array.
+    # The below function fetches the minimium and maximium UIDS as configured in /etc/login.defs.
+    # Any UIDs within this change are true user ids rather than system agents, and therefore
+    # should be locked down. The user_string variable uses this fetched UID range to find all
+    # existing users and their home directory along with formatting this data for later use.
+    # The IFS line simply converts this data into a bash array.
     function user_list_lookup() {
         uid_min="$(grep -Po '^\s*UID_MIN\s+\K\d+' /etc/login.defs)"
         uid_max="$(grep -Po '^\s*UID_MAX\s+\K\d+' /etc/login.defs)"
@@ -216,8 +219,9 @@ toggle-bash-environment-lockdown skip_approval="false" apply_for_all_users="prom
         IFS=',' read -ra user_list <<< "$user_string"
     }
 
-    # $SUDO_USER is the user who started the script instead of whichever authorized it via polkit or the root home. From there this 
-    # $USER_HOME uses getent to lookup their home directory to later check if they have an existing .bashrc file.
+    # $SUDO_USER is the user who started the script instead of whichever authorized it via polkit
+    # or the root home. From there this $USER_HOME uses getent to lookup their home directory to
+    # later check if they have an existing .bashrc file.
     user_home="$(getent passwd "$SUDO_USER" | cut -d: -f6)"
     if lsattr "$user_home/.bashrc" 2>/dev/null | awk '{print $1}' | grep -q 'i'; then
         pending_status="unlocked"
@@ -225,40 +229,43 @@ toggle-bash-environment-lockdown skip_approval="false" apply_for_all_users="prom
         pending_status="locked"
     fi
 
-    # Below variable is created to only call date once and use the same time across the script despite execution time.
+    # Below variable is created to only call date once and use the same time across the script
+    # despite execution time.
     current_time="$(date | tr ' ' '_')"
 
-    if [ "$pending_status" == "locked" ]; then
-        echo "${b}WARNING${n} This will change your ~/.bashrc, ~/.bash_profile, ~/.config/bash-completion, ~/.profile, ~/.bash_logout, ~/.bash_login, ~/.bashrc.d/, and ~/.config/environment.d/"
+    if [[ "$pending_status" == "locked" ]]; then
+        echo "${bold}WARNING${unbold} This will change your ~/.bashrc, ~/.bash_profile, ~/.config/bash-completion, ~/.profile, ~/.bash_logout, ~/.bash_login, ~/.bashrc.d/, and ~/.config/environment.d/"
         echo "This is needed to ensure the mitigation (see LD_PRELOAD attacks) is effective."
         echo "This script will create backups of the old versions in ~/bash_env_files/$current_time."
     else
-        echo "${b}WARNING${n} .bashrc, .bash_profile, and more will be unlocked and made editable by non-root users. This represents a security risk (see LD_PRELOAD attacks)"
+        echo "${bold}WARNING${unbold} .bashrc, .bash_profile, and more will be unlocked and made editable by non-root users. This represents a security risk (see LD_PRELOAD attacks)"
     fi
 
-    if [ "{{ skip_approval }}" == "false" ]; then
+    # shellcheck disable=SC2050
+    if [[ "{{ skip_approval }}" == "false" ]]; then
         echo "Do you understand?"
         echo 'Please type in "YES I UNDERSTAND" and press enter'
         read -r accept
-        if [ "$accept" != "YES I UNDERSTAND" ]; then
+        if [[ "$accept" != "YES I UNDERSTAND" ]]; then
             exit
         fi
-    elif [ "{{ skip_approval }}" != "true" ]; then
+    elif [[ "{{ skip_approval }}" != "true" ]]; then
         echo 'Invalid skip_approval arguement, only "true", "false", or empty allowed.'
         exit
     fi
 
-    if [ "{{ apply_for_all_users }}" == "prompt" ]; then
+    # shellcheck disable=SC2050
+    if [[ "{{ apply_for_all_users }}" == "prompt" ]]; then
         user_list_lookup
-        echo "Do you want this change to apply to ""${b}""all""${n}"" users (""${user_list[@]}"")? [y/N]"
+        echo "Do you want this change to apply to ${bold}all${unbold} users (${user_list[*]})? [y/N]"
         echo "Otherwise, it will only apply to the user who launched this script ($SUDO_USER)."
         read -r reply
         if [[ "$reply" != [yY]* ]]; then
             user_list=("$SUDO_USER")
         fi
-    elif [ "{{ apply_for_all_users }}" == "false" ]; then
+    elif [[ "{{ apply_for_all_users }}" == "false" ]]; then
         user_list=("$SUDO_USER")
-    elif [ "{{ apply_for_all_users }}" == "true" ]; then
+    elif [[ "{{ apply_for_all_users }}" == "true" ]]; then
         user_list_lookup
     else
         echo 'Invalid apply_for_all_users arguement, only "true", "false", or empty allowed.'
@@ -281,20 +288,21 @@ toggle-bash-environment-lockdown skip_approval="false" apply_for_all_users="prom
             "$user_home/.config/environment.d/"
         )
 
-        # Purpose of the below block is to actually lock or unlock the current selected user across the configured BASH_ENV_FILES 
-        #    If the script is locking: 
-        #        to copy the old env files and directories to folder with the time appended to its name 
+        # Purpose of the below block is to actually lock or unlock the current selected user
+        # across the configured BASH_ENV_FILES
+        #    If the script is locking:
+        #        to copy the old env files and directories to folder with the time appended to its name
         #        remove immutability (to allow the script to overwrite any existing immutable environment files)
         #        create default or blank copies (deleting the old versions)
         #        add immutability
 
-        if [ "$pending_status" == "locked" ]; then
+        if [[ "$pending_status" == "locked" ]]; then
             backup_dest="$user_home/bash_env_files/$current_time/"
             mkdir -p "$backup_dest"
 
             for file in "${BASH_ENV_FILES[@]}"; do
-                # skel_file converts "$user_home/.bashrc" to ".bashrc" 
-                skel_file="$(echo "$file" | sed 's|'"${user_home}"'/||')"
+                # skel_file converts "$user_home/.bashrc" to ".bashrc"
+                skel_file="${file#"${user_home}/"}"
                 if [ ! -f "$file" ] && [ ! -d "$file" ] && [ -e "$file" ]; then
                     echo "Special file detected on absolute filepath ($file) from BASH_ENV_FILES. It will not be modified."
                 elif [ -f "$file" ]; then
@@ -302,7 +310,7 @@ toggle-bash-environment-lockdown skip_approval="false" apply_for_all_users="prom
                     rsync -a --mkpath "$file" "$backup_dest$skel_file"
                     rm "$file"
                 elif [ -d "$file" ]; then
-                    chattr -R -i "$file" 
+                    chattr -R -i "$file"
                     rsync -a --mkpath "$file" "$backup_dest$skel_file"
                     rm -r "$file"
                 fi
@@ -329,20 +337,20 @@ toggle-bash-environment-lockdown skip_approval="false" apply_for_all_users="prom
                 elif [ -f "$file" ]; then
                     chattr -i "$file"
                 elif [ -d "$file" ]; then
-                    chattr -R -i "$file" 
+                    chattr -R -i "$file"
                 fi
             done
         fi
     done
 
     echo "${user_list[@]}" "$pending_status."
-    echo "${b}WARNING${n}: until a reboot, any process with an open file descriptor will continue to have the access they had before this script was run."
+    echo "${bold}WARNING${unbold}: until a reboot, any process with an open file descriptor will continue to have the access they had before this script was run."
     echo ""
     echo "Optional Arguments:"
     echo "ujust toggle-bash-environment-lockdown skip_approval apply_for_all_users"
     echo "    skip_approval: [true/false]          'true' the user is not prompted to respond 'YES I UNDERSTAND'; 'false' user is prompted."
     echo ""
-    echo "    apply_for_all_users: [true/false]    'true' change is applied to all users (without prompting); 'false' change is only applied" 
+    echo "    apply_for_all_users: [true/false]    'true' change is applied to all users (without prompting); 'false' change is only applied"
     echo "                                          to user currently logged in (without prompting)."
     echo ""
     echo "Invalid optional arguments are treated as errors."
@@ -377,7 +385,7 @@ toggle-container-domain-userns-creation:
         echo "Module $MODULE_NAME is not currently enabled. Enabling the hardening, disabling container domain userns (e.g. for distrobox)."
 
         echo 'Warning: This will stop ALL containers and shut down podman.'
-        read -p 'Are you sure you want to do this? (y/N) ' proceed
+        read -rp 'Are you sure you want to do this? (y/N) ' proceed
         if ! [[ "$proceed" == [Yy]* ]]; then
             echo "Aborting..."
             exit 0
@@ -409,7 +417,7 @@ toggle-mac-randomization:
         echo "MAC randomization can be stable (persisting the same random MAC per access point across disconnects/reboots),"
         echo "or it can be randomized per-connection (every time it connects to the same access point it uses a new MAC)."
         randomization_choice=""
-        read -p "Do you want to use per-connection Wi-Fi MAC address randomization? [y/N] " randomization_choice
+        read -rp "Do you want to use per-connection Wi-Fi MAC address randomization? [y/N] " randomization_choice
 
         if [[ "$randomization_choice" == [Yy]* ]]; then
             randomization_level=random
