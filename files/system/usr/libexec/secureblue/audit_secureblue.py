@@ -10,6 +10,7 @@ import filecmp
 import glob
 import os.path
 import re
+import rpm
 import signal
 import sys
 import traceback
@@ -664,6 +665,19 @@ def audit_bash_env_lockdown():
 
 
 @audit
+def audit_wlroot_screenshot():
+    """Ensure wlroots screenshot support is not present."""
+    if is_rpm_package_installed("xdg-desktop-portal-wlr"):
+        status = FAILURE
+        rec = """wlroots screenshot support is enabled
+            To disable, run:
+            $ ujust toggle-wlr-screenshot-support"""
+    else:
+        status = SUCCESS
+        rec = None
+    yield Report("Ensuring wlroots screenshot support is not present", status, recs=rec)
+
+@audit
 @categorize("flatpak")
 def audit_flatpak_remotes():
     """Audit flatpak remotes."""
@@ -844,10 +858,16 @@ async def audit_flatpak_permissions(state):
         status, warnings, recs = await tasks[(name, version)]
         yield Report(f"Auditing {name} ({version})", status, warnings=warnings, recs=recs)
 
-
 ###############################################################################
 # Checks to be run go above this line.
 ###############################################################################
+
+
+def is_rpm_package_installed(name: str) -> bool:
+    """Checks if the given RPM package is installed."""
+    ts = rpm.TransactionSet()
+    matches = ts.dbMatch("name", name)
+    return len(matches) > 0
 
 
 def print_err(text: str):
