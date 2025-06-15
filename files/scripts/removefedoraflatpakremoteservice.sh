@@ -12,9 +12,4 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
-set -euo pipefail
-
-[[ -d /home/linuxbrew/.linuxbrew && $- == *i* ]] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-
-# Install required brew packages
-/home/linuxbrew/.linuxbrew/bin/brew install fzf gum glow
+rm -f /usr/lib/systemd/system/flatpak-add-fedora-repos.service

@@ -14,7 +14,5 @@
 
 set -euo pipefail
 
-[[ -d /home/linuxbrew/.linuxbrew && $- == *i* ]] && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
-
-# Install required brew packages
-/home/linuxbrew/.linuxbrew/bin/brew install fzf gum glow
+flatpak remote-add --if-not-exists --user --subset=verified flathub-verified https://flathub.org/repo/flathub.flatpakrepo
+ujust harden-flatpak
