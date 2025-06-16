@@ -10,38 +10,28 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
-name: PR Approvals
+name: GitHub Actions Security Analysis with zizmor 🌈
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["**"]
 
 permissions: {}
 
-on:
-  pull_request:
-
 jobs:
-  pr-approvals:
-    name: PR Approvals
-    runs-on: ubuntu-24.04 
+  zizmor:
+    runs-on: ubuntu-24.04
     permissions:
-      contents: read
-    env:
-      approvers:
+      security-events: write
     steps:
-      - uses: secureblue/approvals-action@ce28f64903343583dd92c84bffedba124d3a6c95 # v0.1.0
-        id: approvers
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          min-required: 2
-          approvers: |
-            EsseLowNitro
-            fiftydinar
-            RoyalOughtness
-            mintpilo
-            mkkvcs
-            RKNF404
-            Rubiginosa
-            ShadowSlayer1441
-            spaceoden
-            TheHooly
-            WavyEbuilder
-            HastD
-            pxlkng
+          persist-credentials: false
+
+      - name: Run zizmor 🌈
+        uses: zizmorcore/zizmor-action@f52a838cfabf134edcbaa7c8b3677dde20045018 # v0.1.1
+        with:
+          persona: auditor
