@@ -126,11 +126,6 @@ debug-info:
     content="$rpm_ostree_status$sysinfo$flatpaks$audit_results$local_overrides$recent_events$failed_services"
     echo "$content" | fpaste --confirm --private=1
 
-# Rerun Yafti
-rerun-yafti:
-    #!/usr/bin/bash
-    yafti -f /usr/share/ublue-os/firstboot/yafti.yml
-
 alias assemble := distrobox-assemble
 
 # Create distroboxes from a defined manifest
