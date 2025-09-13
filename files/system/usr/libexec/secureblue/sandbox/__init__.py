@@ -16,22 +16,37 @@
 Framework for running rootful functions in a systemd sandbox
 """
 
+import dataclasses
 import subprocess
 from typing import Final
-
-from .sandboxed_function import SandboxedFunction
 
 INNER_DIR: Final[str] = "/usr/libexec/secureblue/inner"
 
 
-def create_run0_args(sandboxed_function: SandboxedFunction) -> list[str]:
-    """Creates the args to be passed to run0."""
+@dataclasses.dataclass
+class SandboxedFunction:
+    """A class that wraps a function to be run in a sandbox"""
+
+    file_name: str
+    capabilities: list[str] = dataclasses.field(default_factory=list, kw_only=True)
+    read_write_paths: list[str] = dataclasses.field(default_factory=list, kw_only=True)
+    additional_sandbox_properties: list[str] = dataclasses.field(default_factory=list, kw_only=True)
+
+    def __post_init__(self):
+        """Ensures list fields have expected types."""
+        for prop in (self.capabilities, self.read_write_paths, self.additional_sandbox_properties):
+            if not isinstance(prop, list):
+                raise ValueError(
+                    f"Bad argument to SandboxedFunction: expected list, got `{type(prop)}`."
+                )
+
+
+def create_run0_options(sandboxed_function: SandboxedFunction) -> list[str]:
+    """Creates the options to be passed to run0."""
 
     capabilities = sandboxed_function.capabilities
     read_write_paths = sandboxed_function.read_write_paths
     additional_sandbox_properties = sandboxed_function.additional_sandbox_properties
-    if capabilities is None:
-        return None
 
     # Copyright (C) 2025 Daniel Hast
     # Systemd sandboxing of run0 invocation adapted from run0edit, originally licensed
@@ -48,7 +63,7 @@ def create_run0_args(sandboxed_function: SandboxedFunction) -> list[str]:
         "memfd_create",
     ]
     systemd_sandbox_properties: list[str] = [
-        f"--property=CapabilityBoundingSet={capabilities}",
+        f"--property=CapabilityBoundingSet={' '.join(capabilities)}",
         "--property=DevicePolicy=closed",
         "--property=LockPersonality=yes",
         "--property=MemoryDenyWriteExecute=yes",
@@ -75,24 +90,24 @@ def create_run0_args(sandboxed_function: SandboxedFunction) -> list[str]:
         "--property=SystemCallErrorNumber=EPERM",
     ]
 
-    if read_write_paths is not None:
-        systemd_sandbox_properties.append(f"--property=ReadWritePaths={' '.join(read_write_paths)}")
-
-    if additional_sandbox_properties is not None:
-        systemd_sandbox_properties += additional_sandbox_properties
+    systemd_sandbox_properties.append(f"--property=ReadWritePaths={' '.join(read_write_paths)}")
+    systemd_sandbox_properties += additional_sandbox_properties
 
     return systemd_sandbox_properties
 
 
-def run(sandboxed_function: SandboxedFunction, *args):
+def run(sandboxed_function: SandboxedFunction, *args: str) -> int:
     """Execute a sandboxed function."""
 
-    run0_args = create_run0_args(sandboxed_function)
-    if run0_args is None or run0_args == [""]:
-        return 1
+    run0_options = create_run0_options(sandboxed_function)
+    if not run0_options:
+        raise ValueError("Must not have empty list of options to pass to run0.")
+    if not all(arg.startswith("--") and arg != "--" for arg in run0_options):
+        raise ValueError("Invalid sandboxing options: options must start with --")
     command = [
         "/usr/bin/run0",
-        *run0_args,
+        *run0_options,
+        "--",
         "/usr/bin/python3",
         "-B",  # prevents use of bytecode (pycache) to ease run0 sandboxing configuration
         f"{INNER_DIR}/{sandboxed_function.file_name}",
