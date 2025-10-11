@@ -52,6 +52,7 @@ from utils import (
     get_flatpak_permissions,
     get_legend,
     get_width,
+    is_using_vpn,
     parse_config,
     print_err,
     validate_sysctl,
@@ -356,10 +357,10 @@ def audit_chronyd():
 def audit_dns():
     """Ensure system DNS resolution is active and secure."""
 
+    # Parse `ujust dns-selector status` output.
     status_out = command_stdout(
-        "/usr/bin/python3", "/usr/libexec/secureblue/dns_selector.py", "status", check=False
+        "/usr/bin/python3", "/usr/libexec/secureblue/dns_selector.py", "status"
     )
-
     flags = {}
     for line in status_out.splitlines():
         if ":" not in line:
@@ -405,6 +406,17 @@ def audit_dns():
                 ]
             )
         )
+    if not unbound:
+        status = WARN
+        warnings.append(_("The secure DNS resolver is not in use, possibly for a VPN."))
+        recs.append(
+            "\n".join(
+                [
+                    _("To view or reset your current DNS configuration, run:"),
+                    "$ ujust dns-selector",
+                ]
+            )
+        )
 
     # FAIL
     if unbound and not dnssec:
@@ -419,18 +431,14 @@ def audit_dns():
                 ]
             )
         )
-    if not unbound:
+    if unbound and not global_dns and is_using_vpn():
         status = FAIL
-        warnings.append(_("The secure DNS resolver is not in use, possibly for a VPN."))
+        warnings.append(_("Using a VPN alongside Unbound without Global DNS may cause DNS leaks."))
         recs.append(
             "\n".join(
                 [
-                    _(
-                        "If you use a VPN, consider using it with secure DNS. For instructions, see:"
-                    ),
-                    bold("https://secureblue.dev/faq#dns-vpn"),
-                    _("Otherwise, to view or reset your current DNS configuration, run:"),
-                    "$ ujust dns-selector",
+                    _("If you use a VPN, switch your DNS resolver to systemd-resolved:"),
+                    "$ ujust dns-selector resolver resolved",
                 ]
             )
         )
