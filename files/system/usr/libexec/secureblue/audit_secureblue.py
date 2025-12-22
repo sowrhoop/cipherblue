@@ -38,7 +38,6 @@ from typing import Final
 import kargs_hardening_common
 from audit_flatpak import check_flatpak_permissions, parse_flatpak_permissions
 from audit_utils import (
-    Image,
     get_flatpak_permissions,
     get_legend,
     get_width,
@@ -57,6 +56,8 @@ from auditor import (
     global_audit,
 )
 from utils import (
+    Image,
+    booted_image_ref,
     command_stdout,
     command_succeeds,
     is_using_vpn,
@@ -147,8 +148,7 @@ def audit_sysctl():
 @audit
 def audit_signed_image(state):
     """Check that the secureblue image is signed."""
-    ostree_status = command_stdout("rpm-ostree", "status", "--json")
-    image_ref = json.loads(ostree_status)["deployments"][0]["container-image-reference"]
+    image_ref = booted_image_ref()
     state["image"] = Image.from_image_ref(image_ref)
     if image_ref.startswith("ostree-image-signed:"):
         status = PASS
@@ -775,12 +775,12 @@ def audit_xwayland(state):
     else:
         status = FAIL
         rec_lines = (
-            _("Xwayland is enabled for {0}.").format(de),
+            _("XWayland is enabled for {0}.").format(de),
             _("To disable it, run:"),
-            "$ ujust toggle-xwayland",
+            "$ ujust set-xwayland off",
         )
         rec = "\n".join(rec_lines)
-    yield Report(_("Ensuring {0} is disabled for {1}").format("Xwayland", de), status, recs=rec)
+    yield Report(_("Ensuring {0} is disabled for {1}").format("XWayland", de), status, recs=rec)
 
 
 @audit
