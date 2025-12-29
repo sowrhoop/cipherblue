@@ -1,7 +1,0 @@
-.idea
-cosign.key
-*.kate-swp
-.directory
-Containerfile
-.DS_Store
-__pycache__

@@ -1,4 +1,4 @@
-name: secureblue-signing
-shortdesc: The signing module is used to install the required signing policies for cosign image verification with rpm-ostree and bootc.
+name: cipherblue-signing
+shortdesc: The signing module used to install the required signing policies for cosign image verification with rpm-ostree.
 example: |
-  type: secureblue-signing # this sets up the proper policy & signing files for signed images to work fully
+  type: cipherblue-signing

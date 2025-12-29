@@ -36,3 +36,5 @@ done
 semodule -v -i ./selinux/*/*.pp "${cil_policy_modules[@]}"
 
 restorecon -FRv /usr
+
+dnf remove -y policycoreutils-devel
