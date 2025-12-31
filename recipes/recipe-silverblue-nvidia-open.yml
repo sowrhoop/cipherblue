@@ -1,0 +1,203 @@
+name: cipherblue
+
+description: "Security & Privacy Focused Operating System for Desktops"
+
+base-image: quay.io/fedora/fedora-silverblue
+
+image-version: latest
+
+cosign-version: none
+nushell-version: none
+
+platforms:
+  - linux/amd64
+
+modules:
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    scripts:
+      - addrepos.sh
+      - httpsmirrors.sh
+      - unprotectsudo.sh
+  - type: dnf
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    install:
+      install-weak-deps: false
+      packages:
+        - hardened_malloc
+        - dnsconfd-unbound
+
+        # missing upstream
+        - openssl
+        - patch
+        - nvme-cli
+        - hdparm
+        - gettext
+        - rsync
+
+        # signing deps
+        - sbsigntools
+
+        # address hardened_malloc incompatibilities
+        - no_rlimit_as
+
+        # provenance deps
+        - crane
+        - slsa-verifier
+  - type: files
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    files:
+      - source: system/usr
+        destination: /usr
+      - source: system/etc
+        destination: /etc
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    scripts:
+      - manuallyinstalljust.sh
+      - hardenlogindefs.sh
+      - hardened_malloc-pam.sh
+      - disableresolved.sh
+      - setup-dnsconfd.sh
+      - authselect.sh
+      - setfilepermissions.sh
+      - createmissingdirectories.sh
+      - disablegeoclue.sh
+      - createjustcompletions.sh
+      - removefedoraflatpakremoteservice.sh
+      - localization.sh
+      - addimageinfo.sh
+      - installrar.sh
+      - setchronysysconfig.sh
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    scripts:
+      - signkernel.sh
+    secrets:
+      - type: env
+        name: KERNEL_PRIVKEY
+        mount:
+          type: file
+          destination: /tmp/certs/private_key.priv
+  - type: secureblue-signing
+    source: local
+  - type: dnf
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    install:
+      install-weak-deps: false
+      packages:
+        - gnome-disk-utility
+        - gnome-tweaks
+    remove:
+      packages:
+        - gnome-shell-extension-background-logo
+        - gnome-tour
+        - yelp
+        - gnome-user-share
+        - mod_lua
+        - httpd
+        - httpd-core
+        - mod_http2
+        - mod_dnssd
+        - gnome-remote-desktop
+        - libvncserver
+        - fedora-chromium-config-gnome
+        - gnome-software-rpm-ostree
+        - totem-video-thumbnailer
+        - fedora-flathub-remote
+        - fedora-third-party
+        - fedora-workstation-repositories
+  - type: gschema-overrides
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    include:
+      - zz1-secureblue.gschema.override
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    scripts:
+      - removedkmshelper.sh
+  - type: files
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    files:
+      - source: system/silverblue
+        destination: /
+  - type: files
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    files:
+      - source: system/desktop
+        destination: /
+  - type: dnf
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    install:
+      install-weak-deps: false
+      packages:
+        - bubblejail
+        - usbguard-notifier
+        - usbguard
+        - setools
+        - fscrypt
+        - wl-clipboard
+        - alsa-firmware
+        - fzf
+    remove:
+      packages:
+        - firefox
+        - firefox-langpacks
+        - fuse
+        - passim
+        - fedora-chromium-config
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    scripts:
+        - install-trivalent.sh
+        - installsubresourcefilter.sh
+        - installandroidudev.sh
+        - disablecups.sh
+        - disablesshd.sh
+        - disableavahidaemon.sh
+        - disablealsastate.sh
+        - disablemodemmanager.sh
+        - disablenfsdaemons.sh
+        - disablesssd.sh
+        - disableunconfinedrootfulservices.sh
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    scripts:
+      - removeunusedrepos.sh
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    scripts:
+      - installselinuxpolicies.sh
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    scripts:
+      - removeunusedrepos.sh
+      - regenerateinitramfs.sh
+      - checksinglekernel.sh
+      - removesuid.sh
+      - enable-preset-services.sh
+      - removesudo.sh
+      - ensuresudoabsent.sh
+      - check-selinux-fcontext.sh
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    scripts:
+      - installnvidiakmod.sh
+    secrets:
+      - type: env
+        name: KERNEL_PRIVKEY
+        mount:
+          type: file
+          destination: /tmp/certs/private_key.priv
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    scripts:
+      - installnvidiapackages.sh
+      - removeunusedrepos.sh
+      - setearlyloading.sh
+      - setdrmvariables.sh
+  - type: files
+    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    files:
+      - source: system/nvidia
+        destination: /
+  - from-file: common/final-modules.yml
