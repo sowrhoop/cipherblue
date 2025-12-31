@@ -1,6 +1,0 @@
-contact_links:
-  - name: General inquiry
-    url: https://discord.com/invite/qMTv5cKfbF
-    about: Project questions, support, and discussion with the community
-# disable blank issue creation
-blank_issues_enabled: false

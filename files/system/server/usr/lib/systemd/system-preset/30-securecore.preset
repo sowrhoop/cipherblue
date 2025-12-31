@@ -1,2 +1,0 @@
-disable coreos-container-signing-migration-motd.service
-disable zincati.service
