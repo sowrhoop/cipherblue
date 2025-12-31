@@ -16,32 +16,21 @@ install:
   install-weak-deps: false
   packages:
     - hardened_malloc
-    - run0edit
     - dnsconfd-unbound
 
     # missing upstream
     - openssl
     - patch
-    - 7zip-standalone-all
-    - 7zip
-    - distrobox
-    - toolbox
-    - podman
     - nvme-cli
     - hdparm
-    - wireguard-tools
     - gettext
     - rsync
-    - steam-devices
 
     # signing deps
     - sbsigntools
 
     # address hardened_malloc incompatibilities
     - no_rlimit_as
-
-    # For use in unprivileged ujust scripts
-    - python3-inquirer
 
     # provenance deps
     - crane
