@@ -1,3 +1,0 @@
-docker:
-  ghcr.io/jasonn3:
-    use-sigstore-attachments: true

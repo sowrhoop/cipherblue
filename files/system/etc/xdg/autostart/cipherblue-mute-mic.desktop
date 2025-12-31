@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=Script to Mute Microphone on Boot
+Exec=/usr/bin/amixer set Capture nocap
+Icon=utilities-terminal

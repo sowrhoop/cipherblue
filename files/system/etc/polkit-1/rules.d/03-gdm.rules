@@ -1,0 +1,10 @@
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.freedesktop.login1.inhibit-delay-shutdown" ||
+	 action.id == "org.freedesktop.login1.power-off" ||
+	 action.id == "org.freedesktop.login1.reboot" ||
+	 action.id == "org.freedesktop.login1.suspend") &&
+	 subject.active == true && subject.local == true &&
+	 subject.isInGroup("gdm")) {
+	 return polkit.Result.YES;
+    }
+});

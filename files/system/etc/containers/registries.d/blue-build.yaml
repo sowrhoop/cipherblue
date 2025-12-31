@@ -1,3 +1,0 @@
-docker:
-  ghcr.io/blue-build:
-    use-sigstore-attachments: true

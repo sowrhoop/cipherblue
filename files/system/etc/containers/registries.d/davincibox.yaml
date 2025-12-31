@@ -1,3 +1,0 @@
-docker:
-  ghcr.io/zelikos:
-    use-sigstore-attachments: true

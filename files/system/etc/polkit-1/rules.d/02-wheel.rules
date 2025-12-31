@@ -1,0 +1,9 @@
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.projectatomic.rpmostree1.bootconfig" ||
+         action.id == "org.projectatomic.rpmostree1.cleanup" ||
+         action.id == "org.projectatomic.rpmostree1.rebase") &&
+         subject.active == true && subject.local == true &&
+         subject.isInGroup("wheel")) {
+         return polkit.Result.AUTH_SELF;
+    }
+});
