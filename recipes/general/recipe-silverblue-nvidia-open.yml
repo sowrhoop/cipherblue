@@ -10,11 +10,11 @@
 # distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and limitations under the License.
 
-name: silverblue-nvidia-open-hardened
+name: cipherblue
 
-description: "Silverblue with nvidia-open, hardened"
+description: "Security & Privacy Focused Operating System for Desktops"
 
-base-image: ghcr.io/secureblue/silverblue-main-hardened
+base-image: quay.io/fedora/fedora-silverblue
 
 image-version: latest
 
@@ -25,5 +25,11 @@ platforms:
   - linux/amd64
 
 modules:
+  - from-file: common/common-modules.yml
+  - from-file: common/silverblue-modules.yml
+  - from-file: common/desktop-modules.yml
+  - from-file: common/proprietary-modules.yml
+  - from-file: common/selinux-modules.yml
+  - from-file: common/final-modules.yml
   - from-file: common/nvidia-install.yml
   - from-file: common/final-modules.yml
