@@ -12,7 +12,7 @@
 
 modules:
     - type: dnf
-      source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+      source: ghcr.io/blue-build/modules@sha256:c91331a9e9a418bc84817d15d0a8e1bc1c58ad1571f9efbc4625b84d5dbc2246
       install:
         install-weak-deps: false
         packages:
@@ -26,7 +26,7 @@ modules:
           - fedora-third-party
           - fedora-workstation-repositories
     - type: systemd
-      source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+      source: ghcr.io/blue-build/modules@sha256:c91331a9e9a418bc84817d15d0a8e1bc1c58ad1571f9efbc4625b84d5dbc2246
       system:
         enabled:
           - cosmic-greeter
