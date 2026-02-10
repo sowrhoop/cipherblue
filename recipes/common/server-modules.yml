@@ -12,7 +12,7 @@
 
 modules:
   - type: dnf
-    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    source: ghcr.io/blue-build/modules@sha256:bfc7637d823742eaabc7c01bbd3def9de1eeff28e9891916e501f54644ff1d7a
     install:
       install-weak-deps: false
       packages:
@@ -22,13 +22,13 @@ modules:
         - policycoreutils-python-utils
 
   - type: files
-    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    source: ghcr.io/blue-build/modules@sha256:bfc7637d823742eaabc7c01bbd3def9de1eeff28e9891916e501f54644ff1d7a
     files:
       - source: system/server
         destination: /
 
   - type: script
-    source: ghcr.io/blue-build/modules@sha256:3c04c323f281bdb1ab88148a2335608344bcc07c6c4d2f5f777063a16554256d
+    source: ghcr.io/blue-build/modules@sha256:bfc7637d823742eaabc7c01bbd3def9de1eeff28e9891916e501f54644ff1d7a
     scripts:
       - excludepcsc.sh
       - setserverdefaultzone.sh
