@@ -1,0 +1,14 @@
+[org/freedesktop/Tracker3/Miner/Files]
+enable-monitors=false
+index-recursive-directories=[]
+index-single-directories=[]
+ignored-directories=['*']
+ignored-directories-with-content=['*']
+
+[org/freedesktop/tracker/miner/files]
+enable-monitors=false
+index-recursive-directories=[]
+index-single-directories=[]
+ignored-directories=['*']
+ignored-directories-with-content=['*']
+

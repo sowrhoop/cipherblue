@@ -1,0 +1,10 @@
+[Unit]
+Description=Monitor /run/user for new runtime directories
+
+[Path]
+PathChanged=/run/user
+PathExistsGlob=/run/user/[0-9]*
+
+[Install]
+WantedBy=multi-user.target
+

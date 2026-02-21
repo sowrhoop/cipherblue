@@ -1,0 +1,15 @@
+[Unit]
+Description=Load IMA public key into kernel keyring
+DefaultDependencies=no
+Before=sysinit.target
+After=local-fs.target
+ConditionPathExists=/etc/keys/ima/ima.der
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/bash -ceu 'evmctl import --imasig --keyring .ima /etc/keys/ima/ima.der || true'
+RemainAfterExit=yes
+
+[Install]
+WantedBy=sysinit.target
+

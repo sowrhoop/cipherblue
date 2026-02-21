@@ -1,0 +1,78 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Restricted shell for 'sysadmin'.
+# Allows only rpm-ostree and flatpak commands, plus 'exit' and 'help'.
+
+is_allowed() {
+  local first="$1"
+  case "$first" in
+    rpm-ostree|flatpak|exit|logout|help) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+run_cmd() {
+  # Execute allowed command with arguments
+  local first="$1"; shift || true
+  case "$first" in
+    exit|logout) exit 0 ;;
+    help)
+      cat <<EOF
+Allowed commands:
+  rpm-ostree <args>
+  flatpak <args>
+  exit|logout
+EOF
+      return 0
+      ;;
+    rpm-ostree|flatpak)
+      exec "$first" "$@"
+      ;;
+    *)
+      echo "Command not permitted" >&2
+      return 127
+      ;;
+  esac
+}
+
+if [[ $# -gt 0 ]]; then
+  # Shell invoked with arguments (e.g., ssh sysadmin "cmd"), handle -c pattern
+  if [[ "$1" == "-c" ]] && [[ $# -ge 2 ]]; then
+    # Extract first token from the command string
+    # shellcheck disable=SC2206
+    arr=( $2 )
+    cmd="${arr[0]:-}"
+    if is_allowed "$cmd"; then
+      exec bash -lc "$2"
+    else
+      echo "Command not permitted" >&2
+      exit 127
+    fi
+  else
+    # Direct command invocation: first arg must be allowed
+    if is_allowed "$1"; then
+      run_cmd "$@"
+    else
+      echo "Command not permitted" >&2
+      exit 127
+    fi
+  fi
+  exit 0
+fi
+
+# Interactive mode
+echo "CipherBlue admin console (restricted). Type 'help' for allowed commands."
+while IFS= read -r -p "sysadmin> " line; do
+  # Ignore empty lines and comments
+  [[ -z "${line// }" || "${line}" =~ ^# ]] && continue
+  # shellcheck disable=SC2206
+  tokens=( $line )
+  cmd="${tokens[0]}"; unset 'tokens[0]'
+  if is_allowed "$cmd"; then
+    run_cmd "$cmd" "${tokens[@]}"
+  else
+    echo "Command not permitted" >&2
+  fi
+done
+

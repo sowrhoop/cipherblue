@@ -1,0 +1,26 @@
+[Unit]
+Description=Remounts All Partitions Securely
+DefaultDependencies=no
+Before=sysinit.target
+Requires=local-fs.target
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=-/usr/bin/mount --make-private -o remount,nosuid,noexec,nodev,noatime /dev/shm
+ExecStart=-/usr/bin/mount --make-private -o remount,nosuid,noexec,nodev,noatime /run
+ExecStart=-/usr/bin/mount --make-private -o remount,nosuid,noexec /dev
+ExecStart=-/usr/bin/mount --make-private -o remount,nosuid,noexec /dev/pts
+ExecStart=-/usr/bin/mount --make-private -o remount,nosuid,noexec /sys/fs/selinux
+ExecStart=-/usr/bin/mount --make-private -o remount,ro,nosuid,nodev /usr
+ExecStart=-/usr/bin/mount --make-private -o remount,nosuid,nodev /etc
+ExecStart=-/usr/bin/mount --bind /var/lib/flatpak /var/lib/flatpak
+ExecStart=-/usr/bin/mount -o remount,bind,nosuid,nodev /var/lib/flatpak
+ExecStart=/usr/bin/chmod 644 /etc/dconf/db/distro /etc/dconf/db/gdm /etc/dconf/db/ibus /etc/dconf/db/local /etc/dconf/db/site
+ExecStart=/usr/bin/chcon -u system_u /etc/dconf/db/distro /etc/dconf/db/gdm /etc/dconf/db/ibus /etc/dconf/db/local /etc/dconf/db/site
+ExecStart=/usr/sbin/restorecon -Rv /etc/dconf/db/distro /etc/dconf/db/gdm /etc/dconf/db/ibus /etc/dconf/db/local /etc/dconf/db/site
+StandardOutput=null
+StandardError=null
+
+[Install]
+WantedBy=sysinit.target

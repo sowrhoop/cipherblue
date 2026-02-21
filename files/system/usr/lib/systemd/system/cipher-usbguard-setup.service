@@ -1,0 +1,15 @@
+[Unit]
+Description=Initialize USBGuard rules from present devices
+After=local-fs.target sysinit.target
+Requires=local-fs.target
+ConditionPathExists=!/etc/usbguard/rules.conf
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/mkdir -p /etc/usbguard
+ExecStart=/usr/bin/bash -ceu 'usbguard generate-policy --no-hashes --no-device-names --implicit-policy block > /etc/usbguard/rules.conf'
+ExecStart=/usr/bin/systemctl enable --now usbguard-daemon.service
+ExecStartPost=/usr/bin/chattr +i /etc/usbguard/rules.conf
+
+[Install]
+WantedBy=multi-user.target

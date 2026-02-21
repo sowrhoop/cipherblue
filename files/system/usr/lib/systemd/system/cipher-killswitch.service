@@ -1,0 +1,16 @@
+[Unit]
+Description=Cipherblue VPN Killswitch (nftables)
+Documentation=man:nft(8)
+After=network-pre.target
+Wants=network-pre.target
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/cipherblue/killswitch.conf
+ExecStart=/usr/libexec/cipherblue/cipher-killswitch apply
+ExecStop=/usr/libexec/cipherblue/cipher-killswitch flush
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+

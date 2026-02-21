@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+PRIV_MODPROBE_CONF="/run/modprobe.d/cipher-privacy.conf"
+BLOCK_MODULES=(uvcvideo snd_usb_audio snd_hda_intel v4l2loopback)
+
+apply_privacy() {
+  mkdir -p "$(dirname "$PRIV_MODPROBE_CONF")"
+  : > "$PRIV_MODPROBE_CONF"
+  for m in "${BLOCK_MODULES[@]}"; do
+    echo "install $m /bin/false" >>"$PRIV_MODPROBE_CONF"
+  done
+
+  # Attempt to unload already-loaded modules
+  for m in "${BLOCK_MODULES[@]}"; do
+    if lsmod | awk '{print $1}' | grep -qx "$m"; then
+      modprobe -r "$m" || true
+    fi
+  done
+
+  # Block privacy-sensitive radios
+  if command -v rfkill >/dev/null 2>&1; then
+    rfkill block bluetooth || true
+    rfkill block wwan || true
+  fi
+}
+
+revert_privacy() {
+  # Remove runtime blacklist and try restoring modules
+  if [ -f "$PRIV_MODPROBE_CONF" ]; then
+    rm -f "$PRIV_MODPROBE_CONF"
+  fi
+  for m in "${BLOCK_MODULES[@]}"; do
+    modprobe "$m" 2>/dev/null || true
+  done
+
+  # Unblock radios
+  if command -v rfkill >/dev/null 2>&1; then
+    rfkill unblock bluetooth || true
+    rfkill unblock wwan || true
+  fi
+}
+
+case "${1:-}" in
+  apply) apply_privacy ;;
+  revert) revert_privacy ;;
+  *) echo "Usage: $0 {apply|revert}" >&2; exit 2 ;;
+esac
+

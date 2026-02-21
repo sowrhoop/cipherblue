@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Remount /run/user/<uid> tmpfs directories with noexec,nosuid,nodev.
+# Accepts optional UID as first argument. Without args, sweeps all.
+
+remount_one() {
+  local dir="$1"
+  if [[ -d "$dir" ]] && mountpoint -q "$dir"; then
+    # Try remount with strict options; keep other options as-is.
+    mount -o remount,noexec,nosuid,nodev "$dir" 2>/dev/null || true
+  fi
+}
+
+if [[ $# -ge 1 ]]; then
+  d="/run/user/$1"
+  remount_one "$d"
+else
+  shopt -s nullglob
+  for d in /run/user/[0-9]*; do
+    remount_one "$d"
+  done
+fi
+
+exit 0
+

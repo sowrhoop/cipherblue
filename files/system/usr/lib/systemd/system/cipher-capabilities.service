@@ -1,0 +1,13 @@
+[Unit]
+Description=Set capabilities for suid-removed binaries
+After=local-fs.target sysinit.target
+DefaultDependencies=no
+Before=graphical-session-pre.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/cipher-capabilities
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

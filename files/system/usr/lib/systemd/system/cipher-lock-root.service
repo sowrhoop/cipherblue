@@ -1,0 +1,15 @@
+[Unit]
+Description=Lock root account (no login)
+DefaultDependencies=no
+After=local-fs.target sysinit.target systemd-sysusers.service
+Wants=local-fs.target systemd-sysusers.service
+Before=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cipherblue/lock-root.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+

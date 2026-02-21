@@ -1,0 +1,14 @@
+[Unit]
+Description=Apply Cipherblue Privacy Mode (block camera/mic, radios; persist until disabled)
+PartOf=cipher-privacy.target
+After=network-pre.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/libexec/cipherblue/cipher-privacy apply
+ExecStop=/usr/libexec/cipherblue/cipher-privacy revert
+
+[Install]
+WantedBy=cipher-privacy.target
+

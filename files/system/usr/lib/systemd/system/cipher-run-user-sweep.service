@@ -1,0 +1,8 @@
+[Unit]
+Description=Enforce noexec on /run/user/* mounts
+ConditionPathIsDirectory=/run/user
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cipherblue/remount-run-user
+

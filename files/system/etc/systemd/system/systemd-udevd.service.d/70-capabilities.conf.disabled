@@ -1,0 +1,6 @@
+[Service]
+# Optional tighter capability bounding set for udevd. Enable after verifying
+# device hotplug/rules on your hardware. Rename to 70-capabilities.conf to use.
+#CapabilityBoundingSet=CAP_MKNOD CAP_SYS_ADMIN CAP_NET_ADMIN CAP_CHOWN CAP_DAC_OVERRIDE CAP_FOWNER CAP_FSETID CAP_SETUID CAP_SETGID CAP_SYS_TTY_CONFIG CAP_SYS_RAWIO CAP_SYS_CHROOT
+#AmbientCapabilities=
+

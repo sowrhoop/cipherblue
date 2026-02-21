@@ -1,0 +1,23 @@
+[Unit]
+Description=Cipher Cleaning Service
+DefaultDependencies=no
+Before=sysinit.target
+Requires=local-fs.target
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/cp /usr/etc/authselect/system-auth /etc/authselect/system-auth
+ExecStart=/usr/bin/cp /usr/etc/authselect/fingerprint-auth /etc/authselect/fingerprint-auth
+ExecStart=/usr/bin/cp /usr/etc/authselect/dconf-db /etc/authselect/dconf-db
+ExecStart=/usr/bin/cp /usr/etc/authselect/authselect.conf /etc/authselect/authselect.conf
+ExecStart=/usr/bin/find /var/tmp/ -mindepth 1 -delete
+ExecStart=/usr/bin/find /dev/shm/ -mindepth 1 -delete
+ExecStart=/usr/bin/find /dev/mqueue/ -mindepth 1 -delete
+ExecStart=/usr/bin/find /sysroot/tmp/ -mindepth 1 -delete
+ExecStart=/usr/bin/journalctl --vacuum-time=1w
+StandardOutput=null
+StandardError=null
+
+[Install]
+WantedBy=sysinit.target

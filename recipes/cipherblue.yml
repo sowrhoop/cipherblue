@@ -1,0 +1,38 @@
+name: cipherblue
+description: "A Security & Privacy Focused Operating System For Desktops"
+base-image: ghcr.io/secureblue/silverblue-nvidia-open-hardened
+image-version: latest
+modules:
+    - type: script
+      scripts:
+        - httpsmirrors.sh
+        - package-installer.sh
+        - cipherblue-cleanup.sh
+        - selinux-hardening.sh
+    - type: rpm-ostree
+      remove:
+        - buildah
+        - crun
+        - dnf5
+        - fedora-logos
+        - fedora-logos-httpd
+        - libdnf5
+        - libdnf5-cli
+        - sdbus-cpp
+        - yajl
+    - type: files
+      files:
+        - source: system/usr
+          destination: /usr
+        - source: system/etc
+          destination: /etc
+    - type: script
+      scripts:
+        - cipherblue-cleanup.sh
+        - authselect-hardening.sh
+        - permission-hardening.sh
+        - systemd-hardening.sh
+        - suid-hardening.sh
+        - dconf-compile.sh
+    - type: cipherblue-signing
+      source: local

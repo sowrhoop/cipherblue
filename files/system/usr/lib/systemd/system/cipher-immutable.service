@@ -1,0 +1,14 @@
+[Unit]
+Description=Lock critical configuration as immutable
+DefaultDependencies=no
+After=local-fs.target sysinit.target cipher-cleaner.service
+Wants=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cipherblue/immutable-lock.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+

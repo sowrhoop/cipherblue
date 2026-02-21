@@ -1,0 +1,12 @@
+/org/freedesktop/Tracker3/Miner/Files/enable-monitors
+/org/freedesktop/Tracker3/Miner/Files/index-recursive-directories
+/org/freedesktop/Tracker3/Miner/Files/index-single-directories
+/org/freedesktop/Tracker3/Miner/Files/ignored-directories
+/org/freedesktop/Tracker3/Miner/Files/ignored-directories-with-content
+
+/org/freedesktop/tracker/miner/files/enable-monitors
+/org/freedesktop/tracker/miner/files/index-recursive-directories
+/org/freedesktop/tracker/miner/files/index-single-directories
+/org/freedesktop/tracker/miner/files/ignored-directories
+/org/freedesktop/tracker/miner/files/ignored-directories-with-content
+
