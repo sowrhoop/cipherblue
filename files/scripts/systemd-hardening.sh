@@ -78,12 +78,6 @@ services=(
     fstrim.timer
     rpm-ostreed-automatic.timer
     tlp
-    fapolicyd
-    dnscrypt-proxy
-    unbound
-    cipher-ima-keys.service
-    cipher-privacy.target
-    cipher-killswitch.service
 )
 
 for service in "${services[@]}"; do

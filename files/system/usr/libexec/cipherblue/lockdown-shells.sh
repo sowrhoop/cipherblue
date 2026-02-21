@@ -16,4 +16,3 @@ awk -F: '($3 >= 1000) && ($1 != "sysadmin") { print $1 ":" $7 }' /etc/passwd | w
 done
 
 exit 0
-
