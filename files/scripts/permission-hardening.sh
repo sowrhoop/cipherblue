@@ -2,7 +2,7 @@
 
 set -oue pipefail
 
-chmod 700 /usr/bin/cipher-capabilities
+#chmod 700 /usr/bin/cipher-capabilities
 chmod 755 /usr/libexec/cipherblue/remount-run-user
 chmod 755 /usr/libexec/cipherblue/immutable-lock.sh
 chmod 755 /usr/libexec/cipherblue/lock-root.sh
