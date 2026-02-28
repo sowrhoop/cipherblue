@@ -6,21 +6,21 @@ modules:
     - type: script
       scripts:
         - package-installer.sh
-        - cipherblue-cleanup.sh
+        #- cipherblue-cleanup.sh
         #- selinux-hardening.sh
     - type: files
       files:
-        - source: system/usr
-          destination: /usr
+    #    - source: system/usr
+    #      destination: /usr
         - source: system/etc
           destination: /etc
     - type: script
       scripts:
-        - cipherblue-cleanup.sh
-        - authselect-hardening.sh
-        - permission-hardening.sh
-        - systemd-hardening.sh
+  #      - cipherblue-cleanup.sh
+   #     - authselect-hardening.sh
+   #     - permission-hardening.sh
+    #    - systemd-hardening.sh
         - suid-hardening.sh
-        - dconf-compile.sh
+    #    - dconf-compile.sh
     - type: cipherblue-signing
       source: local
