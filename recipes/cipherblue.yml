@@ -8,12 +8,12 @@ modules:
         - package-installer.sh
         - cipherblue-cleanup.sh
         #- selinux-hardening.sh
-    - type: files
-      files:
-        - source: system/usr
-          destination: /usr
-        - source: system/etc
-          destination: /etc
+    #- type: files
+    #  files:
+    #    - source: system/usr
+    #      destination: /usr
+    #    - source: system/etc
+    #      destination: /etc
     - type: script
       scripts:
         - cipherblue-cleanup.sh
