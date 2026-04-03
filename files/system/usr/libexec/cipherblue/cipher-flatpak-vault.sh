@@ -1,43 +1,53 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Waiting for Cipherblue encrypted DNS tunnel to establish..."
+# ==============================================================================
+# CIPHERBLUE SENTINEL
+# ==============================================================================
+notify_ui() {
+    local title="$1"
+    local msg="$2"
+    local icon="${3:-preferences-system}"
+    local target_user=$(loginctl list-sessions --no-legend | awk '$3 != "gdm" && $3 != "root" {print $3}' | head -n 1)
+    
+    if [[ -n "$target_user" ]]; then
+        local target_uid=$(id -u "$target_user")
+        runuser -u "$target_user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
+            notify-send -a "Cipherblue Sentinel" -i "$icon" "$title" "$msg" || true
+    fi
+}
+
+notify_ui "📡 Network Probe" "Waiting for Cipherblue encrypted DNS tunnel to establish..." "network-wireless"
+
 until curl -s https://dl.flathub.org > /dev/null; do
     sleep 5
 done
 
-echo "DNS active. Enforcing Cipherblue Supply Chain..."
+notify_ui "⚙️ Application State Sync" "Network active. Analyzing Flatpak Vault against GitHub Declarative State..." "software-update-available"
 
-# 1. Add our custom restricted remote FIRST
-# Enforcing the verified_floss subset to mathematically guarantee OSS supply chain integrity
 flatpak remote-add --if-not-exists --system --subset=verified_floss cipherblue-verified-floss https://dl.flathub.org/repo/flathub.flatpakrepo
 
-# 2. Dynamically exterminate ALL unauthorized SYSTEM remotes
 mapfile -t SYSTEM_REMOTES < <(flatpak remote-list --system --columns=name 2>/dev/null || true)
 for remote in "${SYSTEM_REMOTES[@]}"; do
     if [[ -n "$remote" && "$remote" != "cipherblue-verified-floss" ]]; then
-        echo "CIPHERBLUE ENFORCER: Nuking unauthorized system remote -> $remote"
+        notify_ui "💥 Purging Remote" "Unauthorized system remote detected: $remote. Exterminating..." "user-trash"
         flatpak remote-delete --force --system "$remote" || true
     fi
 done
 
-# 3. Read the Desired State injected by GitHub Actions
 if [[ -f /etc/cipherblue/flatpaks.list ]]; then
     mapfile -t DESIRED_APPS < <(grep -v '^#' /etc/cipherblue/flatpaks.list | grep -v '^[[:space:]]*$')
 else
     DESIRED_APPS=()
 fi
 
-# 4. Read Current State of the hard drive WITH ORIGIN REMOTES
 mapfile -t INSTALLED_APPS_INFO < <(flatpak list --system --app --columns=application,origin 2>/dev/null || true)
 
-# 5. The Exterminator & Origin Enforcer
+changes_made=false
+
 for app_info in "${INSTALLED_APPS_INFO[@]}"; do
-    # Extract the app name and its source origin
     app=$(echo "$app_info" | awk '{print $1}')
     origin=$(echo "$app_info" | awk '{print $2}')
-    
-    # Skip empty lines
     if [[ -z "$app" ]]; then continue; fi
 
     is_desired=false
@@ -49,20 +59,18 @@ for app_info in "${INSTALLED_APPS_INFO[@]}"; do
     done
     
     if [[ "$is_desired" == false ]]; then
-        echo "CIPHERBLUE ENFORCER: Deprecated application detected -> $app. Exterminating..."
+        notify_ui "🗑️ App Extermination" "Deprecated app detected: $app. Nuking binary and data..." "user-trash"
         flatpak uninstall --system -y --noninteractive --delete-data "$app" || true
+        changes_made=true
     elif [[ "$origin" != "cipherblue-verified-floss" ]]; then
-        # THE STRANDED ORIGIN FIX
-        echo "CIPHERBLUE ENFORCER: Origin Violation -> $app installed from '$origin'. Purging for secure migration..."
-        # Notice we omit --delete-data here so your IDE settings and login sessions survive the migration!
+        notify_ui "🔄 Origin Migration" "Migrating $app from insecure origin ($origin) to verified FLOSS remote..." "system-software-update"
         flatpak uninstall --system -y --noninteractive "$app" || true
+        changes_made=true
     fi
 done
 
-# 6. Refresh the Current State Array after the purge
 mapfile -t CURRENTLY_INSTALLED < <(flatpak list --system --app --columns=application 2>/dev/null || true)
 
-# 7. The Provisioner (Installs missing apps from the correct remote)
 for app in "${DESIRED_APPS[@]}"; do
     is_installed=false
     for installed in "${CURRENTLY_INSTALLED[@]}"; do
@@ -73,13 +81,19 @@ for app in "${DESIRED_APPS[@]}"; do
     done
     
     if [[ "$is_installed" == false ]]; then
-        echo "CIPHERBLUE ENFORCER: Authorized application missing -> $app. Installing from secure remote..."
+        notify_ui "📦 Provisioning App" "Authorized application missing. Installing: $app..." "software-update-available"
         flatpak install --system -y --noninteractive cipherblue-verified-floss "$app" || true
+        changes_made=true
     fi
 done
 
-# 8. Deep Clean orphaned runtimes
+notify_ui "🧹 Deep Cleaning" "Sweeping orphaned runtimes and leftover system cache..." "edit-clear-all"
 flatpak uninstall --system --unused -y --noninteractive --delete-data || true
 
-echo "Cipherblue Flatpak State mathematically enforced."
+if [ "$changes_made" = true ]; then
+    notify_ui "✅ Vault Synchronized" "Applications successfully aligned with your secure cloud state." "emblem-default"
+else
+    notify_ui "🛡️ System Secure" "Application state is mathematically perfect. No changes required." "security-high"
+fi
+
 exit 0

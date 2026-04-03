@@ -1,66 +1,67 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "CIPHERBLUE: Initializing Cryptographic Bootstrap Engine..."
+# ==============================================================================
+# CIPHERBLUE SENTINEL
+# ==============================================================================
+notify_ui() {
+    local title="$1"
+    local msg="$2"
+    local icon="${3:-system-software-update}"
+    local target_user=$(loginctl list-sessions --no-legend | awk '$3 != "gdm" && $3 != "root" {print $3}' | head -n 1)
+    
+    if [[ -n "$target_user" ]]; then
+        local target_uid=$(id -u "$target_user")
+        runuser -u "$target_user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
+            notify-send -a "Cipherblue Sentinel" -i "$icon" "$title" "$msg" || true
+    fi
+}
 
-# 1. Wait for the rpm-ostree daemon to wake up
 until rpm-ostree status >/dev/null 2>&1; do
     sleep 2
 done
 
-# 2. Check the current Image State
 current_ref=$(rpm-ostree status --booted --json | jq -cr '.deployments[0]."container-image-reference"')
 
 if [[ "$current_ref" != *"ostree-unverified-registry"* ]]; then
-    echo "CIPHERBLUE: System is already running a cryptographically signed image."
-    echo "CIPHERBLUE: Creating stamp to permanently sleep this bootstrap service..."
     touch /var/lib/cipherblue-signed-rebase.stamp
     exit 0
 fi
 
-echo "CIPHERBLUE: Unverified OS state detected. Preparing Secure Rebase..."
+notify_ui "🔒 Sentinel Bootstrap" "Unverified state detected. Initializing Cryptographic Rebase protocol..." "network-transmit-receive"
 
-# 3. Read the Private Vault (Created manually during Fedora Silverblue phase)
-echo "CIPHERBLUE: Extracting GHCR credentials from /etc/ostree/auth.json..."
 if [[ ! -f /etc/ostree/auth.json ]]; then
-    echo "CIPHERBLUE FATAL: Auth vault missing. Cannot fetch private image."
+    notify_ui "⚠️ Security Alert" "Auth vault missing. Rebase aborted." "dialog-error"
     exit 1
 fi
 
 B64_AUTH=$(jq -r '.auths["ghcr.io"].auth // empty' /etc/ostree/auth.json)
 if [[ -z "$B64_AUTH" || "$B64_AUTH" == "null" ]]; then
-    echo "CIPHERBLUE FATAL: Malformed auth.json. Cannot extract token."
+    notify_ui "⚠️ Security Alert" "Malformed authentication. Rebase aborted." "dialog-error"
     exit 1
 fi
 
-# ==============================================================================
-# 4. FIX: THE D-BUS DAEMON TRAP
-# The backend containers/image library is blind to the ostree auth path. 
-# We must forcefully sideload the credentials into the OCI Daemon paths.
-# ==============================================================================
-echo "CIPHERBLUE: Sideloading Private Vault into root OCI subsystems..."
+notify_ui "🌉 Bridging D-Bus Gap" "Sideloading private credentials into root OCI subsystems..." "preferences-system"
+
 mkdir -p /etc/containers /run/containers/0
 cp /etc/ostree/auth.json /etc/containers/auth.json
 cp /etc/ostree/auth.json /run/containers/0/auth.json
 chmod 600 /etc/containers/auth.json /run/containers/0/auth.json
 
-# 5. Wait for True Network Connectivity (Authenticated)
-echo "CIPHERBLUE: Waiting for Authenticated DNS routing to GitHub Container Registry..."
 until curl -sL -H "Authorization: Basic $B64_AUTH" --retry 3 https://ghcr.io > /dev/null; do
     sleep 5
 done
-echo "CIPHERBLUE: True network connection established."
 
-# 6. Execute the Cryptographic Rebase
-echo "CIPHERBLUE: Executing Secure Rebase to private signed image..."
+notify_ui "⬇️ Executing Secure Pull" "Downloading immutable signed OS from GHCR. This process may take several minutes depending on network speed..." "software-update-available"
+
 rpm-ostree rebase ostree-image-signed:docker://ghcr.io/sowrhoop/cipherblue:latest || {
-    echo "CIPHERBLUE FATAL: Rebase failed. Daemon might be locked or auth is invalid."
+    notify_ui "❌ Rebase Failed" "The cryptographic rebase crashed. Ensure device has stable internet and check journalctl." "dialog-error"
     exit 1
 }
 
-# 7. Finalize and Lock
-echo "CIPHERBLUE: Cryptographic Rebase Staged Successfully."
 touch /var/lib/cipherblue-signed-rebase.stamp
 
-echo "CIPHERBLUE: Initiating required reboot to lock system into immutable state..."
+notify_ui "✅ Lockdown Complete" "Cipherblue Image verified and staged. The system will forcefully reboot in 10 seconds." "system-reboot"
+
+sleep 10
 systemctl reboot
