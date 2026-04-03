@@ -33,18 +33,32 @@ if [[ -z "$B64_AUTH" || "$B64_AUTH" == "null" ]]; then
     exit 1
 fi
 
-# 4. Wait for True Network Connectivity (Authenticated)
+# ==============================================================================
+# 4. FIX: THE D-BUS DAEMON TRAP
+# The backend containers/image library is blind to the ostree auth path. 
+# We must forcefully sideload the credentials into the OCI Daemon paths.
+# ==============================================================================
+echo "CIPHERBLUE: Sideloading Private Vault into root OCI subsystems..."
+mkdir -p /etc/containers /run/containers/0
+cp /etc/ostree/auth.json /etc/containers/auth.json
+cp /etc/ostree/auth.json /run/containers/0/auth.json
+chmod 600 /etc/containers/auth.json /run/containers/0/auth.json
+
+# 5. Wait for True Network Connectivity (Authenticated)
 echo "CIPHERBLUE: Waiting for Authenticated DNS routing to GitHub Container Registry..."
 until curl -sL -H "Authorization: Basic $B64_AUTH" --retry 3 https://ghcr.io > /dev/null; do
     sleep 5
 done
 echo "CIPHERBLUE: True network connection established."
 
-# 5. Execute the Cryptographic Rebase
+# 6. Execute the Cryptographic Rebase
 echo "CIPHERBLUE: Executing Secure Rebase to private signed image..."
-rpm-ostree rebase ostree-image-signed:docker://ghcr.io/sowrhoop/cipherblue:latest || exit 1
+rpm-ostree rebase ostree-image-signed:docker://ghcr.io/sowrhoop/cipherblue:latest || {
+    echo "CIPHERBLUE FATAL: Rebase failed. Daemon might be locked or auth is invalid."
+    exit 1
+}
 
-# 6. Finalize and Lock
+# 7. Finalize and Lock
 echo "CIPHERBLUE: Cryptographic Rebase Staged Successfully."
 touch /var/lib/cipherblue-signed-rebase.stamp
 
