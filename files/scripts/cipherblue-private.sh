@@ -23,22 +23,19 @@ fi
 chmod 644 /etc/cipherblue/flatpaks.list
 
 # ==============================================================================
-# 2. PRIVATE DOMAIN BLOCKLIST INJECTION (The OSTree Blueprint Fix)
+# 2. PRIVATE DOMAIN BLOCKLIST INJECTION (The GitOps Fix)
 # ==============================================================================
-echo "Cleanly appending Domain Blocklist to native OSTree blueprint (/usr/etc/hosts)..."
+echo "Staging Domain Blocklist to immutable vault..."
 
-# FIX: In OCI containers, /etc/hosts is a live bind-mount. Modifying it crashes sed
-# and changes are discarded. We must append to the OSTree blueprint at /usr/etc/hosts, 
-# which rpm-ostree merges into the live /etc/hosts automatically during boot!
-
-# The GitHub Action's Perl script replaces the placeholder below perfectly.
-cat << 'EOF' >> /usr/etc/hosts
-
-# ===========================================================
-# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST
-# ===========================================================
+# We store the blocklist safely in /etc/cipherblue to avoid OCI bind-mount crashes.
+# The cipher-cleaner systemd service will natively inject this into /etc/hosts on boot.
+cat << 'EOF' > /etc/cipherblue/hosts.blocklist
 __SECRET_HOSTS_BLOCKLIST__
 EOF
+
+# Safely delete the placeholder string if the secret was empty
+sed -i '/__SECRET_HOSTS_BLOCKLIST__/d' /etc/cipherblue/hosts.blocklist
+chmod 644 /etc/cipherblue/hosts.blocklist
 
 echo "CIPHERBLUE: Private data mathematically fused into the immutable OS blueprint."
 exit 0
