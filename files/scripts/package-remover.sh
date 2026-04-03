@@ -258,7 +258,7 @@ gnome-shell-extension-common
 gnome-shell-extension-launch-new-instance
 gnome-shell-extension-places-menu
 gnome-shell-extension-window-list
-ptyxis
+#ptyxis # added for debugging
 qadwaitadecorations-qt5
 qt-settings
 qt5-filesystem
