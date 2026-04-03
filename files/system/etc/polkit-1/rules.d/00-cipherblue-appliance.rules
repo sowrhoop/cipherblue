@@ -1,0 +1,39 @@
+// SPDX-License-Identifier: Apache-2.0
+// Cipherblue Absolute Zero-Trust Appliance Engine
+
+polkit.addRule(function(action, subject) {
+    
+    // 0. SYSTEM SERVICE BYPASS (For Background Housekeeping & GitOps)
+    if (subject.user == "root") {
+        return polkit.Result.YES;
+    }
+
+    // 1. HARD DENY - ALL OS & PACKAGE STATE MUTATIONS
+    // Because Cipherblue operates as a Declarative GitOps Appliance, the standard
+    // user has absolutely zero legitimate reason to manually install apps, remove apps,
+    // refresh repositories, or trigger OS rebases. 
+    if (action.id.indexOf("org.freedesktop.Flatpak.") === 0 ||
+        action.id.indexOf("org.projectatomic.rpmostree1.") === 0) {
+        polkit.log("CIPHERBLUE: Unauthorized state mutation blocked for user: " + subject.user);
+        return polkit.Result.NO;
+    }
+
+    // 2. STANDARD PERMISSIONS (Hardware, Network, Power)
+    if (subject.active == true && subject.local == true) {
+        if (action.id == "com.endlessm.ParentalControls.AppFilter.ReadOwn" ||
+            action.id == "org.freedesktop.NetworkManager.enable-disable-network" ||
+            action.id == "org.freedesktop.NetworkManager.enable-disable-wifi" ||
+            action.id == "org.freedesktop.udisks2.eject-media" ||
+            action.id == "org.freedesktop.udisks2.filesystem-mount" ||
+            action.id == "org.freedesktop.NetworkManager.wifi.scan" ||
+            action.id == "org.freedesktop.login1.inhibit-delay-shutdown" ||
+            action.id == "org.freedesktop.login1.power-off" ||
+            action.id == "org.freedesktop.login1.reboot" ||
+            action.id == "org.freedesktop.login1.suspend") {
+            return polkit.Result.YES;
+        }
+    }
+
+    // 3. THE GREAT WALL
+    return polkit.Result.NO;
+});
