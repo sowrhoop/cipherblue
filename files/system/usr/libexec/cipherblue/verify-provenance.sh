@@ -33,7 +33,7 @@ case "${image_tag}" in
     latest)
         branch='main'
         ;;
-    br-**)
+    br-*)
         branch="${image_tag#br-}"
         branch="${branch%-*}"
         ;;
@@ -55,6 +55,11 @@ fi
 
 B64_AUTH=$(jq -r '.auths["ghcr.io"].auth // empty' /etc/ostree/auth.json)
 
+if [[ -z "$B64_AUTH" || "$B64_AUTH" == "null" ]]; then
+    echo "CIPHERBLUE FATAL: Malformed auth.json. Cannot extract token."
+    exit 1
+fi
+
 # ==============================================================================
 # CIPHERBLUE TRUE INTERNET PROBE (AUTHENTICATED)
 # ==============================================================================
@@ -69,6 +74,12 @@ crane auth login ghcr.io -u "sowrhoop" -p "$(echo "$B64_AUTH" | base64 -d | cut 
 
 full_ref=$(crane digest --full-ref "${image_ref}")
 echo "Locked Image Digest: ${full_ref}"
+
+# ==============================================================================
+# SLSA-VERIFIER FIX: EXPORT TOKEN TO ENVIRONMENT
+# slsa-verifier does not read crane's docker config. It requires GITHUB_TOKEN.
+# ==============================================================================
+export GITHUB_TOKEN="$(echo "$B64_AUTH" | base64 -d | cut -d: -f2)"
 
 slsa-verifier verify-image --source-uri "${source_uri}" --source-branch "${branch}" "${full_ref}"
 
