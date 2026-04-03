@@ -5,12 +5,13 @@ notify_ui() {
     local title="$1"
     local msg="$2"
     local icon="${3:-system-software-update}"
+    local urgency="${4:-normal}"
     local target_user=$(loginctl list-sessions --no-legend | awk '$3 != "gdm" && $3 != "root" {print $3}' | head -n 1)
     
     if [[ -n "$target_user" ]]; then
         local target_uid=$(id -u "$target_user")
         runuser -u "$target_user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
-            notify-send -a "Cipherblue Sentinel" -i "$icon" "$title" "$msg" || true
+            notify-send -a "Cipherblue Sentinel" -u "$urgency" -i "$icon" "$title" "$msg" || true
     fi
 }
 
@@ -27,8 +28,6 @@ fi
 
 # ==============================================================================
 # THE DESKTOP SESSION GATE
-# Pauses the bootstrap engine until a human logs into Wayland. 
-# This prevents silent background CPU hogging and guarantees UI telemetry.
 # ==============================================================================
 echo "CIPHERBLUE: Holding execution until human Wayland session is established..."
 while true; do
@@ -40,39 +39,55 @@ while true; do
 done
 
 notify_ui "🔒 Sentinel Bootstrap" "Unverified state detected. Initializing Cryptographic Rebase protocol..." "network-transmit-receive"
+sleep 3
 
 if [[ ! -f /etc/ostree/auth.json ]]; then
-    notify_ui "⚠️ Security Alert" "Auth vault missing. Rebase aborted." "dialog-error"
+    notify_ui "⚠️ Security Alert" "Auth vault missing. Rebase aborted." "dialog-error" "critical"
     exit 1
 fi
 
 B64_AUTH=$(jq -r '.auths["ghcr.io"].auth // empty' /etc/ostree/auth.json)
 if [[ -z "$B64_AUTH" || "$B64_AUTH" == "null" ]]; then
-    notify_ui "⚠️ Security Alert" "Malformed authentication. Rebase aborted." "dialog-error"
+    notify_ui "⚠️ Security Alert" "Malformed authentication. Rebase aborted." "dialog-error" "critical"
     exit 1
 fi
 
-notify_ui "🌉 Bridging D-Bus Gap" "Sideloading private credentials into root OCI subsystems..." "preferences-system"
-
-mkdir -p /etc/containers /run/containers/0
-cp /etc/ostree/auth.json /etc/containers/auth.json
-cp /etc/ostree/auth.json /run/containers/0/auth.json
-chmod 600 /etc/containers/auth.json /run/containers/0/auth.json
+notify_ui "🔐 Vault Verified" "Credentials securely read from native OSTree vault. Probing network..." "dialog-password"
 
 until curl -sL -H "Authorization: Basic $B64_AUTH" --retry 3 https://ghcr.io > /dev/null; do
     sleep 5
 done
 
-notify_ui "⬇️ Executing Secure Pull" "Downloading immutable signed OS from GHCR. This process may take several minutes depending on network speed..." "software-update-available"
+# We removed the sideloading gap. rpm-ostree natively handles the auth now!
 
-rpm-ostree rebase ostree-image-signed:docker://ghcr.io/sowrhoop/cipherblue:latest || {
-    notify_ui "❌ Rebase Failed" "The cryptographic rebase crashed. Ensure device has stable internet." "dialog-error"
+notify_ui "⬇️ Executing Secure Pull" "Downloading immutable signed OS from GHCR. This process takes 15-30 minutes depending on network speed..." "software-update-available" "critical"
+
+# ==============================================================================
+# ASYNCHRONOUS HEARTBEAT MONITOR
+# ==============================================================================
+rpm-ostree rebase ostree-image-signed:docker://ghcr.io/sowrhoop/cipherblue:latest > /var/log/cipherblue-rebase.log 2>&1 &
+RPM_PID=$!
+
+MINUTES_WAITED=0
+while kill -0 $RPM_PID 2>/dev/null; do
+    sleep 60
+    ((MINUTES_WAITED++))
+    if (( MINUTES_WAITED % 3 == 0 )); then
+        notify_ui "⏳ Rebase In Progress ($MINUTES_WAITED min)" "Cipherblue is still mathematically extracting the OS layers in the background. Please wait..." "emblem-synchronizing"
+    fi
+done
+
+wait $RPM_PID
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -ne 0 ]; then
+    ERROR_TXT=$(tail -n 2 /var/log/cipherblue-rebase.log | tr -d '"' | tr -d "'" | tr '\n' ' ')
+    notify_ui "❌ Rebase Failed" "Error: $ERROR_TXT" "dialog-error" "critical"
     exit 1
-}
+fi
 
 touch /var/lib/cipherblue-signed-rebase.stamp
-
-notify_ui "✅ Lockdown Complete" "Cipherblue Image verified and staged. The system will forcefully reboot in 10 seconds." "system-reboot"
+notify_ui "✅ Lockdown Complete" "Cipherblue Image verified and staged. The system will forcefully reboot in 10 seconds." "system-reboot" "critical"
 
 sleep 10
 systemctl reboot

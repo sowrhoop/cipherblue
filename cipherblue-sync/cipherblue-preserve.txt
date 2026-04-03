@@ -37,7 +37,7 @@ files/scripts/permission-hardening.sh
 files/scripts/selinux-hardening.sh
 files/scripts/suid-hardening.sh
 files/scripts/systemd-hardening.sh
-files/scripts/cipherblue-add-repo.sh
+files/scripts/cipherblue-private.sh
 
 # Custom Cipherblue System Files
 
