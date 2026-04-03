@@ -23,7 +23,7 @@ These files exist in our repo. If upstream pushes a file with the exact same nam
 - `files/scripts/selinux-hardening.sh`
 - `files/scripts/suid-hardening.sh`
 - `files/scripts/systemd-hardening.sh`
-- `files/scripts/cipherblue-add-repo.sh`
+- `files/scripts/cipherblue-private.sh`
 - `files/system/etc/modprobe.d/cipherblue-blacklist.conf`
 - `files/system/etc/NetworkManager/conf.d/60-cipherblue.conf`
 - `files/system/etc/NetworkManager/conf.d/99-disable-connectivity.conf`
