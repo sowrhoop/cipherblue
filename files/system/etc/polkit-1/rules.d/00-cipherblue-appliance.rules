@@ -2,23 +2,29 @@
 // Cipherblue Absolute Zero-Trust Appliance Engine
 
 polkit.addRule(function(action, subject) {
-    if (subject.user == "root") { return polkit.Result.YES; }
+    
+    // 0. SYSTEM SERVICE BYPASS (For Background Housekeeping & GitOps)
+    if (subject.user == "root") {
+        return polkit.Result.YES;
+    }
 
-    if (action.id == "org.freedesktop.Flatpak.modify-repo" ||
-        action.id == "org.projectatomic.rpmostree1.repo-modify" ||
-        action.id == "org.projectatomic.rpmostree1.rebase") {
+    // 1. HARD DENY - ALL OS & PACKAGE STATE MUTATIONS
+    // Because Cipherblue operates as a Declarative GitOps Appliance, the standard
+    // user has absolutely zero legitimate reason to manually install apps, remove apps,
+    // refresh repositories, or trigger OS rebases. 
+    if (action.id.indexOf("org.freedesktop.Flatpak.") === 0 ||
+        action.id.indexOf("org.projectatomic.rpmostree1.") === 0) {
+        polkit.log("CIPHERBLUE: Unauthorized state mutation blocked for user: " + subject.user);
         return polkit.Result.NO;
     }
 
+    // 2. STANDARD PERMISSIONS (Hardware, Network, Power)
     if (subject.active == true && subject.local == true) {
         if (action.id == "com.endlessm.ParentalControls.AppFilter.ReadOwn" ||
             action.id == "org.freedesktop.NetworkManager.enable-disable-network" ||
             action.id == "org.freedesktop.NetworkManager.enable-disable-wifi" ||
             action.id == "org.freedesktop.udisks2.eject-media" ||
             action.id == "org.freedesktop.udisks2.filesystem-mount" ||
-            action.id == "org.projectatomic.rpmostree1.repo-refresh" ||
-            action.id == "org.projectatomic.rpmostree1.upgrade" ||
-            action.id == "org.projectatomic.rpmostree1.cleanup" ||
             action.id == "org.freedesktop.NetworkManager.wifi.scan" ||
             action.id == "org.freedesktop.login1.inhibit-delay-shutdown" ||
             action.id == "org.freedesktop.login1.power-off" ||
@@ -28,43 +34,6 @@ polkit.addRule(function(action, subject) {
         }
     }
 
-    if (action.id == "org.freedesktop.Flatpak.app-uninstall") {
-        var target_id = action.lookup("app") || action.lookup("ref") || "";
-        if (target_id.indexOf("io.github.kolunmi.Bazaar") !== -1) {
-            return polkit.Result.NO;
-        }
-        return polkit.Result.YES;
-    }
-
-    if (action.id == "org.freedesktop.Flatpak.app-install" ||
-        action.id == "org.freedesktop.Flatpak.app-update") {
-
-        var target_id = action.lookup("app") || action.lookup("ref") || "";
-        if (target_id.indexOf("runtime/") === 0) { return polkit.Result.YES; }
-
-        var is_whitelisted = false;
-        if (target_id) {
-            // CI/CD dynamically injects the private secret here during the GitHub Action build
-            var whitelist = [
-                "io.github.kolunmi.Bazaar",
-                __SECRET_FLATPAK_WHITELIST__
-            ];
-
-            for (var i = 0; i < whitelist.length; i++) {
-                if (target_id.indexOf(whitelist[i]) !== -1) {
-                    is_whitelisted = true; break;
-                }
-            }
-        }
-        return is_whitelisted ? polkit.Result.YES : polkit.Result.NO;
-    }
-
-    if (action.id == "org.freedesktop.Flatpak.runtime-install" ||
-        action.id == "org.freedesktop.Flatpak.runtime-update" ||
-        action.id == "org.freedesktop.Flatpak.runtime-uninstall" ||
-        action.id == "org.freedesktop.Flatpak.appstream-update") {
-        return polkit.Result.YES;
-    }
-
+    // 3. THE GREAT WALL
     return polkit.Result.NO;
 });

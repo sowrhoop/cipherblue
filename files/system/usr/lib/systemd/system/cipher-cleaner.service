@@ -9,24 +9,34 @@ After=local-fs.target
 Type=oneshot
 
 # Hardening: Lock system binaries/configs but keep /var and /home writable 
-# ProtectHome is intentionally omitted so the garbage collector can physically delete unauthorized apps.
 ProtectSystem=full
 NoNewPrivileges=yes
 TimeoutStartSec=0
 RemainAfterExit=yes
 
-# Safely clean temporary shared memory and mqueue
+# 1. Safely clean temporary shared memory and mqueue
 ExecStart=/usr/bin/find /dev/shm/ -mindepth 1 -delete
 ExecStart=/usr/bin/find /dev/mqueue/ -mindepth 1 -delete
 
-# Safely clean /var/tmp (PrivateTmp=yes removed so it targets the real system directory)
+# 2. Safely clean /var/tmp 
 ExecStart=/usr/bin/find /var/tmp/ -mindepth 1 -delete
 
 # ==============================================================================
-# CIPHERBLUE GARBAGE COLLECTOR
-# Physically wipes out unauthorized user flatpaks, user repos, and leftover data
+# CIPHERBLUE GARBAGE COLLECTOR (DETERMINISTIC ENGINE)
 # ==============================================================================
-ExecStart=-/usr/bin/sh -c 'rm -rf /var/home/*/.local/share/flatpak'
+# This loop iterates through /etc/passwd and checks:
+# - Is it root (UID 0)? 
+# - Is it a human user (UID >= 1000)?
+# If so, it checks if the flatpak directory exists, then annihilates it.
+# The '-' prefix tells systemd to continue even if a specific rm fails.
+# ==============================================================================
+ExecStart=-/usr/bin/sh -c 'while IFS=: read -r user pass uid gid info home shell; do \
+    if [ "$uid" -eq 0 ] || [ "$uid" -ge 1000 ]; then \
+        if [ -d "$home/.local/share/flatpak" ]; then \
+            rm -rf "$home/.local/share/flatpak"; \
+        fi; \
+    fi; \
+done < /etc/passwd'
 
 StandardOutput=null
 StandardError=null

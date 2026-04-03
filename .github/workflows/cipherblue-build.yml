@@ -33,9 +33,13 @@ jobs:
         run: |
           echo "Injecting private secrets into the OS image..."
           
-          # 1. Inject the Flatpak Whitelist into the Polkit Javascript Engine
-          if [[ -f files/system/etc/polkit-1/rules.d/00-cipherblue-appliance.rules ]]; then
-            sed -i "s|__SECRET_FLATPAK_WHITELIST__|$FLATPAK_WHITELIST|g" files/system/etc/polkit-1/rules.d/00-cipherblue-appliance.rules
+          # 1. DECLARATIVE FLATPAK ENGINE (Zero GUI)
+          # Convert the comma-separated GitHub secret directly into the master list
+          mkdir -p files/system/etc/cipherblue
+          if [[ -n "$FLATPAK_WHITELIST" ]]; then
+            echo "$FLATPAK_WHITELIST" | tr ',' '\n' | tr -d ' ' | grep -v '^$' > files/system/etc/cipherblue/flatpaks.list
+          else
+            touch files/system/etc/cipherblue/flatpaks.list
           fi
           
           # 2. Generate the private /etc/hosts domain blocklist

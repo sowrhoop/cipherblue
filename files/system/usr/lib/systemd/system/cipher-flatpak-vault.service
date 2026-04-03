@@ -1,11 +1,9 @@
 [Unit]
-Description=Cipherblue Flatpak Vault Initialization
+Description=Cipherblue Flatpak State Enforcer
 After=network-online.target systemd-resolved.service
 Wants=network-online.target
-ConditionPathExists=!/var/lib/cipherblue-flatpak.stamp
 
 [Service]
-# FIX: Changed to simple to legally permit the restart loop
 Type=simple
 ExecStart=/usr/bin/bash /usr/libexec/cipherblue/cipher-flatpak-vault.sh
 
