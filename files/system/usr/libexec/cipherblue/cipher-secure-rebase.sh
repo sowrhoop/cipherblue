@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ==============================================================================
-# CIPHERBLUE SENTINEL
-# ==============================================================================
 notify_ui() {
     local title="$1"
     local msg="$2"
@@ -27,6 +24,20 @@ if [[ "$current_ref" != *"ostree-unverified-registry"* ]]; then
     touch /var/lib/cipherblue-signed-rebase.stamp
     exit 0
 fi
+
+# ==============================================================================
+# THE DESKTOP SESSION GATE
+# Pauses the bootstrap engine until a human logs into Wayland. 
+# This prevents silent background CPU hogging and guarantees UI telemetry.
+# ==============================================================================
+echo "CIPHERBLUE: Holding execution until human Wayland session is established..."
+while true; do
+    active_user=$(loginctl list-sessions --no-legend | awk '$3 != "gdm" && $3 != "root" {print $3}' | head -n 1)
+    if [[ -n "$active_user" ]]; then
+        break
+    fi
+    sleep 3
+done
 
 notify_ui "🔒 Sentinel Bootstrap" "Unverified state detected. Initializing Cryptographic Rebase protocol..." "network-transmit-receive"
 
@@ -55,7 +66,7 @@ done
 notify_ui "⬇️ Executing Secure Pull" "Downloading immutable signed OS from GHCR. This process may take several minutes depending on network speed..." "software-update-available"
 
 rpm-ostree rebase ostree-image-signed:docker://ghcr.io/sowrhoop/cipherblue:latest || {
-    notify_ui "❌ Rebase Failed" "The cryptographic rebase crashed. Ensure device has stable internet and check journalctl." "dialog-error"
+    notify_ui "❌ Rebase Failed" "The cryptographic rebase crashed. Ensure device has stable internet." "dialog-error"
     exit 1
 }
 

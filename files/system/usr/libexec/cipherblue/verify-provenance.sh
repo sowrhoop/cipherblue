@@ -6,25 +6,43 @@ set -euo pipefail
 export HOME=${HOME:-~}
 
 # ==============================================================================
-# CIPHERBLUE SENTINEL
+# ASYNCHRONOUS TRANSIENT DISPATCHER
+# Because this script runs before GNOME exists, it uses systemd-run to spawn
+# independent, floating background tasks. They wait patiently in RAM (up to 10m) 
+# and fire off the telemetry the exact second you log into your desktop.
 # ==============================================================================
 notify_ui() {
     local title="$1"
     local msg="$2"
     local icon="${3:-security-high}"
-    local target_user=$(loginctl list-sessions --no-legend | awk '$3 != "gdm" && $3 != "root" {print $3}' | head -n 1)
     
-    if [[ -n "$target_user" ]]; then
-        local target_uid=$(id -u "$target_user")
-        runuser -u "$target_user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
-            notify-send -a "Cipherblue Sentinel" -i "$icon" "$title" "$msg" || true
-    fi
+    systemd-run --quiet --collect \
+        -p Environment="SENTINEL_TITLE=${title}" \
+        -p Environment="SENTINEL_MSG=${msg}" \
+        -p Environment="SENTINEL_ICON=${icon}" \
+        /bin/bash -c '
+            for i in {1..120}; do
+                TARGET_USER=""
+                while read -r session uid user seat tty rest; do
+                    if [[ -n "$user" && "$user" != "root" && "$user" != "gdm" ]]; then
+                        TARGET_USER="$user"
+                        break
+                    fi
+                done <<< "$(loginctl list-sessions --no-legend)"
+                
+                if [[ -n "$TARGET_USER" ]]; then
+                    TARGET_UID=$(id -u "$TARGET_USER")
+                    runuser -u "$TARGET_USER" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${TARGET_UID}/bus" notify-send -a "Cipherblue Sentinel" -i "$SENTINEL_ICON" "$SENTINEL_TITLE" "$SENTINEL_MSG"
+                    break
+                fi
+                sleep 5
+            done
+        ' || true
 }
 
 raw_image_ref=$(rpm-ostree status --booted --json | jq -cr '.deployments[0]."container-image-reference"')
 
 if [[ "$raw_image_ref" == *"ostree-unverified-registry"* ]]; then
-    # Silent exit here, as secure-rebase.sh handles the unverified state notification
     exit 1
 fi
 

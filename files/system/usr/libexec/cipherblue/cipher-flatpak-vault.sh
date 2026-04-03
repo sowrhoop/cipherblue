@@ -1,9 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ==============================================================================
-# CIPHERBLUE SENTINEL
-# ==============================================================================
 notify_ui() {
     local title="$1"
     local msg="$2"
@@ -21,6 +18,17 @@ notify_ui "📡 Network Probe" "Waiting for Cipherblue encrypted DNS tunnel to e
 
 until curl -s https://dl.flathub.org > /dev/null; do
     sleep 5
+done
+
+# ==============================================================================
+# THE DESKTOP SESSION GATE
+# ==============================================================================
+while true; do
+    active_user=$(loginctl list-sessions --no-legend | awk '$3 != "gdm" && $3 != "root" {print $3}' | head -n 1)
+    if [[ -n "$active_user" ]]; then
+        break
+    fi
+    sleep 3
 done
 
 notify_ui "⚙️ Application State Sync" "Network active. Analyzing Flatpak Vault against GitHub Declarative State..." "software-update-available"
