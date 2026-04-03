@@ -1,0 +1,28 @@
+[Unit]
+Description=Cipherblue Strict Mount Enforcer
+After=local-fs.target
+
+[Service]
+Type=oneshot
+
+# Core System RAM Disks
+ExecStart=-/usr/bin/mount -o remount,nosuid,noexec,nodev /run
+ExecStart=-/usr/bin/mount -o remount,nosuid,noexec,nodev /dev/shm
+
+# Core Temporary Storage
+ExecStart=-/usr/bin/mount -o remount,nosuid,noexec,nodev /tmp
+ExecStart=-/usr/bin/mount --bind /var/tmp /var/tmp
+ExecStart=-/usr/bin/mount -o remount,bind,nosuid,noexec,nodev /var/tmp
+
+# User Space Data
+ExecStart=-/usr/bin/mount -o remount,nosuid,noexec,nodev /var/home
+
+# Flatpak system directory (Requires exec to run apps, but locked with nosuid/nodev)
+ExecStartPre=-/usr/bin/test -d /var/lib/flatpak
+ExecStart=-/usr/bin/mount --bind /var/lib/flatpak /var/lib/flatpak
+ExecStart=-/usr/bin/mount -o remount,bind,nosuid,nodev /var/lib/flatpak
+
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

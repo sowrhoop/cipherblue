@@ -1,0 +1,17 @@
+[Unit]
+Description=Cipherblue Cleanup
+After=local-fs.target network-online.target
+Requires=local-fs.target network-online.target
+ConditionPathExists=!/var/lib/cipherblue-cleanup.stamp
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cipherblue/cipherbluecleanup
+ExecStartPost=/usr/bin/touch /var/lib/cipherblue-cleanup.stamp
+RestartSec=30s
+Restart=on-failure
+RestartMaxDelaySec=1800s
+RestartSteps=10
+
+[Install]
+WantedBy=multi-user.target

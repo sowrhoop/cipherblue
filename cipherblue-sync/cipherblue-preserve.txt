@@ -1,0 +1,98 @@
+# cipherblue-preserve.txt
+
+# Files/dirs that exist only in this repo and must NOT be deleted by sync
+
+# Keep this list minimal, grouped and alphabetically ordered
+
+# Git & CI
+
+.git
+.github/workflows/cipherblue-build.yml
+.github/workflows/cipherblue-sync.yml
+
+# Top-level metadata
+
+LICENSE
+README.md
+cosign.pub
+
+# cipherblue-sync scripts
+
+cipherblue-sync/cipherblue-exclude.txt
+cipherblue-sync/cipherblue-preserve.txt
+cipherblue-sync/cipherblue-sync.sh
+cipherblue-sync/upstream-preserve.txt
+
+# Recipes
+
+recipes/recipe-cipherblue.yml
+
+# Important scripts
+
+files/scripts/authselect-hardening.sh
+files/scripts/cipherblue-cleanup.sh
+files/scripts/cipherblue-compile-dconf.sh
+files/scripts/package-remover.sh
+files/scripts/permission-hardening.sh
+files/scripts/selinux-hardening.sh
+files/scripts/suid-hardening.sh
+files/scripts/systemd-hardening.sh
+files/scripts/cipherblue-add-repo.sh
+
+# Custom Cipherblue System Files
+
+files/system/etc/modprobe.d/cipherblue-blacklist.conf
+files/system/etc/NetworkManager/conf.d/60-cipherblue.conf
+files/system/etc/NetworkManager/conf.d/99-disable-connectivity.conf
+files/system/etc/profile.d/cipherblue_umask.sh
+files/system/etc/security/limits.d/60-cipherblue.conf
+files/system/etc/sysctl.d/60-cipherblue-hardening.conf
+files/system/etc/systemd/resolved.conf.d/99-cipherblue-dns.conf
+files/system/etc/systemd/system/cipher-cleaner.service.d/cipherblue.conf
+files/system/etc/systemd/system/cipher-remount.service.d
+files/system/etc/systemd/system.conf.d/50-cipherblue-defaults.conf
+files/system/etc/systemd/user.conf.d/50-cipherblue-defaults.conf
+files/system/etc/systemd/zram-generator.conf
+files/system/etc/tlp.d/cipherblue.conf
+files/system/etc/tmpfiles.d/99-cipherblue-proc.conf
+files/system/etc/tmpfiles.d/99-cipherblue-sys.conf
+files/system/etc/trivalent/policies/managed/cipherblue.json
+files/system/etc/trivalent/trivalent.conf
+files/system/etc/xdg/autostart/cipherblue-mute-mic.desktop
+files/system/etc/environment
+files/system/etc/securetty
+files/system/etc/systemd/coredump.conf.d/disable-coredump.conf
+files/system/usr/share/xdg-desktop-portal/gnome-portals.conf
+files/system/etc/containers/policy.json
+files/system/usr/lib/systemd/system/cipher-cleaner.service
+files/system/etc/dconf/db/local.d/locks/00-cipherblue-locks
+files/system/etc/dconf/db/local.d/00-cipherblue-settings
+files/system/etc/dconf/profile/user
+files/system/etc/systemd/system/user@.service.d/99-cipher-run-hardening.conf
+files/system/etc/udisks2/mount_options.conf
+files/system/etc/polkit-1/rules.d/00-cipherblue-appliance.rules
+files/system/etc/tmpfiles.d/99-cipherblue-dns.conf
+files/system/usr/lib/systemd/system/cipher-flatpak-vault.service
+files/system/usr/lib/systemd/system/cipher-mount-enforcer.service
+files/system/usr/libexec/cipherblue/cipher-flatpak-vault.sh
+files/system/etc/systemd/system/flatpak-system-update.service.d/99-cipherblue-cleanup.conf
+files/system/etc/profile.d/99-cipherblue-flatpak.sh
+files/system/etc/systemd/logind.conf.d/99-cipherblue-tty-lockdown.conf
+files/scripts/cipherblue-lock-layering.sh
+files/system/etc/profile.d/99-cipherblue-kill-shell.sh
+files/system/usr/lib/systemd/system/cipher-secure-rebase.service
+files/system/usr/libexec/cipherblue/cipher-secure-rebase.sh
+files/system/etc/systemd/system/rpm-ostreed-automatic.timer.d/99-cipherblue-aggressive.conf
+files/system/usr/libexec/cipherblue/verify-provenance.sh
+files/system/usr/lib/systemd/system-preset/35-cipherblue-desktop.preset
+files/system/usr/lib/systemd/system-preset/40-cipherblue.preset
+files/system/usr/lib/systemd/user-preset/35-cipherblue-desktop.preset
+files/system/etc/systemd/system/rpm-ostreed-automatic.service.d/override.conf
+files/system/usr/lib/systemd/system/flatpak-system-update.service
+files/system/etc/systemd/journald.conf.d/60-cipherblue-privacy.conf
+
+# Modules
+
+modules/cipherblue-signing/cipherblue-signing.sh
+modules/cipherblue-signing/module.yml
+modules/cipherblue-signing/registry-config.yaml

@@ -1,0 +1,111 @@
+name: cipherblue-sync
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # daily at 03:00 UTC
+  workflow_dispatch:
+
+concurrency:
+  group: cipherblue-sync
+  cancel-in-progress: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Full Repo Sync script
+        run: |
+          chmod +x ./cipherblue-sync/cipherblue-sync.sh
+          ./cipherblue-sync/cipherblue-sync.sh --git-url https://github.com/secureblue/secureblue --branch live
+
+      - name: Post-sync Cleanup & Preserve Override
+        run: |
+          set -euo pipefail
+          
+          echo "Safeguarding upstream-preserved files from blanket exclusions..."
+          UPSTREAM_PRESERVE="cipherblue-sync/upstream-preserve.txt"
+          SAFE_DIR=$(mktemp -d)
+          if [[ -f "$UPSTREAM_PRESERVE" ]]; then
+            while IFS= read -r pat || [[ -n "$pat" ]]; do
+              pat="${pat//$'\\r'/}"
+              [[ -z "$pat" || "$pat" =~ ^# ]] && continue
+              if [[ -e "$pat" ]]; then
+                 mkdir -p "$SAFE_DIR/$(dirname "$pat")"
+                 cp -a "$pat" "$SAFE_DIR/$pat"
+              fi
+            done < "$UPSTREAM_PRESERVE"
+          fi
+
+          echo "Enforcing Universal Source of Truth (cipherblue-exclude.txt) on tracked files..."
+          EXCLUDE_FILE="cipherblue-sync/cipherblue-exclude.txt"
+          if [[ -f "$EXCLUDE_FILE" ]]; then
+            while IFS= read -r pat || [[ -n "$pat" ]]; do
+              pat="${pat//$'\\r'/}"
+              [[ -z "$pat" || "$pat" =~ ^# ]] && continue
+              
+              clean_pat="${pat#/}"
+              clean_pat="${clean_pat%\/\*\*}"
+              clean_pat="${clean_pat%\/\*}"
+              
+              git rm -rf --ignore-unmatch "$clean_pat" >/dev/null 2>&1 || true
+              rm -rf "$clean_pat" >/dev/null 2>&1 || true
+              
+              if [[ "$clean_pat" == files/system/desktop/* || "$clean_pat" == files/system/silverblue/* ]]; then
+                merged_pat=$(echo "$clean_pat" | sed -E 's/files\/system\/(desktop|silverblue)\//files\/system\//')
+                git rm -rf --ignore-unmatch "$merged_pat" >/dev/null 2>&1 || true
+                rm -rf "$merged_pat" >/dev/null 2>&1 || true
+              fi
+            done < "$EXCLUDE_FILE"
+          fi
+          
+          if [[ -f "$UPSTREAM_PRESERVE" ]]; then
+            echo "Restoring latest upstream-preserved files into the tree..."
+            rsync -a "$SAFE_DIR/" ./ || true
+            
+            echo "Forcing git to track upstream-preserved files (overriding Git cache)..."
+            while IFS= read -r pat || [[ -n "$pat" ]]; do
+              pat="${pat//$'\\r'/}"
+              [[ -z "$pat" || "$pat" =~ ^# ]] && continue
+              if [[ -e "$pat" ]]; then
+                 # THIS IS THE CRITICAL FIX YOU WERE MISSING
+                 git add -f "$pat"
+                 echo "Force-tracked: $pat"
+              fi
+            done < "$UPSTREAM_PRESERVE"
+          fi
+
+          echo "OVERRIDE PROTOCOL: Restoring protected local files from preserve list..."
+          PRESERVE_FILE="cipherblue-sync/cipherblue-preserve.txt"
+          if [[ -f "$PRESERVE_FILE" ]]; then
+            while IFS= read -r preserve_pat || [[ -n "$preserve_pat" ]]; do
+              preserve_pat="${preserve_pat//$'\\r'/}"
+              [[ -z "$preserve_pat" || "$preserve_pat" =~ ^# ]] && continue
+              
+              git checkout HEAD -- "$preserve_pat" 2>/dev/null || true
+            done < "$PRESERVE_FILE"
+          fi
+
+      - name: Commit and push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "cipherblue-bot"
+          git config user.email "ci@cipherblue"
+          
+          git add -A . || true
+          
+          if ! git diff --quiet --staged; then
+            git commit -m "chore(sync): full repository sync and automated cleanup"
+            git pull --rebase origin "$GITHUB_REF_NAME"
+            git push origin "HEAD:refs/heads/$GITHUB_REF_NAME"
+          else
+            echo "No changes to commit"
+          fi

@@ -1,0 +1,17 @@
+[Unit]
+Description=Cipherblue Flatpak Vault Initialization
+After=network-online.target systemd-resolved.service
+Wants=network-online.target
+ConditionPathExists=!/var/lib/cipherblue-flatpak.stamp
+
+[Service]
+# FIX: Changed to simple to legally permit the restart loop
+Type=simple
+ExecStart=/usr/bin/bash /usr/libexec/cipherblue/cipher-flatpak-vault.sh
+
+# If it fails (e.g., internet drops), try again in 30 seconds
+Restart=on-failure
+RestartSec=30s
+
+[Install]
+WantedBy=multi-user.target

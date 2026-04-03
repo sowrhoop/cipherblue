@@ -1,0 +1,11 @@
+[copr:copr.fedorainfracloud.org:cipherblue:packages]
+name=Copr repo for packages owned by cipherblue
+baseurl=https://download.copr.fedorainfracloud.org/results/secureblue/packages/fedora-$releasever-$basearch/
+type=rpm-md
+skip_if_unavailable=True
+gpgcheck=1
+# gpgkey=https://download.copr.fedorainfracloud.org/results/secureblue/packages/pubkey.gpg
+gpgkey=file:///usr/share/pki/rpm-gpg/cipherblue-copr-pubkey.gpg
+repo_gpgcheck=0
+enabled=1
+enabled_metadata=1

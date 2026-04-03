@@ -1,0 +1,35 @@
+[Unit]
+Description=Cipherblue Cleaning Service
+DefaultDependencies=no
+Before=sysinit.target
+Requires=local-fs.target
+After=local-fs.target
+
+[Service]
+Type=oneshot
+
+# Hardening: Lock system binaries/configs but keep /var and /home writable 
+# ProtectHome is intentionally omitted so the garbage collector can physically delete unauthorized apps.
+ProtectSystem=full
+NoNewPrivileges=yes
+TimeoutStartSec=0
+RemainAfterExit=yes
+
+# Safely clean temporary shared memory and mqueue
+ExecStart=/usr/bin/find /dev/shm/ -mindepth 1 -delete
+ExecStart=/usr/bin/find /dev/mqueue/ -mindepth 1 -delete
+
+# Safely clean /var/tmp (PrivateTmp=yes removed so it targets the real system directory)
+ExecStart=/usr/bin/find /var/tmp/ -mindepth 1 -delete
+
+# ==============================================================================
+# CIPHERBLUE GARBAGE COLLECTOR
+# Physically wipes out unauthorized user flatpaks, user repos, and leftover data
+# ==============================================================================
+ExecStart=-/usr/bin/sh -c 'rm -rf /var/home/*/.local/share/flatpak'
+
+StandardOutput=null
+StandardError=null
+
+[Install]
+WantedBy=sysinit.target

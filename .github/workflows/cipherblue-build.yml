@@ -1,0 +1,56 @@
+name: cipherblue-build
+
+on:
+  schedule:
+    - cron: "00 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bluebuild:
+    name: Build Cipherblue
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        recipe:
+          - recipe-cipherblue.yml
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Inject Cipherblue Private Secrets
+        env:
+          HOSTS_BLOCKLIST: ${{ secrets.CIPHERBLUE_BLOCKLIST }}
+          FLATPAK_WHITELIST: ${{ secrets.CIPHERBLUE_FLATPAKS }}
+        run: |
+          echo "Injecting private secrets into the OS image..."
+          
+          # 1. Inject the Flatpak Whitelist into the Polkit Javascript Engine
+          if [[ -f files/system/etc/polkit-1/rules.d/00-cipherblue-appliance.rules ]]; then
+            sed -i "s|__SECRET_FLATPAK_WHITELIST__|$FLATPAK_WHITELIST|g" files/system/etc/polkit-1/rules.d/00-cipherblue-appliance.rules
+          fi
+          
+          # 2. Generate the private /etc/hosts domain blocklist
+          mkdir -p files/system/etc
+          echo -e "\n# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST" >> files/system/etc/hosts
+          echo "$HOSTS_BLOCKLIST" >> files/system/etc/hosts
+          
+          echo "Private data successfully staged for secure compilation."
+
+      - name: Build Cipherblue Image
+        uses: blue-build/github-action@4d8b4df657ec923574611eec6fd7e959416c47f0
+        with:
+          recipe: ${{ matrix.recipe }}
+          cosign_private_key: ${{ secrets.SIGNING_SECRET }}
+          registry_token: ${{ github.token }}
+          pr_event_number: ${{ github.event.number }}
+          maximize_build_space: false
+          squash: true

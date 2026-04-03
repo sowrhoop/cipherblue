@@ -1,0 +1,17 @@
+# SPDX-FileCopyrightText: Copyright 2025-2026 The Cipherblue Authors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+type: script
+source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
+scripts:
+  - install-trivalent.sh
+  - installsubresourcefilter.sh
+  - disablecups.sh
+  - disablesshd.sh
+  - disableavahidaemon.sh
+  - disablealsastate.sh
+  - disablemodemmanager.sh
+  - disablenfsdaemons.sh
+  - disablesssd.sh
+  - disableunconfinedrootfulservices.sh

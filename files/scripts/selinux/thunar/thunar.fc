@@ -1,0 +1,5 @@
+# SPDX-FileCopyrightText: Copyright 2025-2026 The Cipherblue Authors
+#
+# SPDX-License-Identifier: Apache-2.0 OR MIT
+
+/usr/bin/thunar	--	gen_context(system_u:object_r:thunar_exec_t,s0)

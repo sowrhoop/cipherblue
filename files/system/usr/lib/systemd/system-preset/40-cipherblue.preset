@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: Apache-2.0
+# Cipherblue Appliance Overrides
+
+enable cipherbluecleanup.service
+enable fwupd-refresh.timer
+enable rpm-ostreed-automatic.timer
+enable cipherblue-rpm-ostreed-conf.service
+
+# CRITICAL FIX: Podman containers are purged, disable the upstream timer
+disable podman-auto-update.timer
+
+# Extra OS Security
+disable flatpak-add-fedora-repos.service
+disable geoclue.service
+disable sshd-vsock.socket
