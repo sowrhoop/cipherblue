@@ -33,7 +33,7 @@ case "${image_tag}" in
     latest)
         branch='main'
         ;;
-    br-*)
+    br-**)
         branch="${image_tag#br-}"
         branch="${branch%-*}"
         ;;
@@ -45,15 +45,27 @@ esac
 echo "Expected Source: ${source_uri}:${branch}"
 
 # ==============================================================================
-# CIPHERBLUE TRUE INTERNET PROBE
-# Prevents 'crane digest' from crashing if the systemd timer fires 
-# before the DNS tunnel has fully resolved external routing.
+# CIPHERBLUE PRIVATE AUTHENTICATION EXTRACTION
 # ==============================================================================
-echo "CIPHERBLUE: Waiting for True Network routing to GitHub Container Registry..."
-until curl -sL --retry 3 https://ghcr.io > /dev/null; do
+echo "CIPHERBLUE: Extracting credentials for Provenance Engine..."
+if [[ ! -f /etc/ostree/auth.json ]]; then
+    echo "CIPHERBLUE FATAL: Auth vault missing at /etc/ostree/auth.json. Cannot verify private image."
+    exit 1
+fi
+
+B64_AUTH=$(jq -r '.auths["ghcr.io"].auth // empty' /etc/ostree/auth.json)
+
+# ==============================================================================
+# CIPHERBLUE TRUE INTERNET PROBE (AUTHENTICATED)
+# ==============================================================================
+echo "CIPHERBLUE: Waiting for Authenticated Network routing to GitHub Container Registry..."
+until curl -sL -H "Authorization: Basic $B64_AUTH" --retry 3 https://ghcr.io > /dev/null; do
     sleep 5
 done
 echo "CIPHERBLUE: True network connection established. Proceeding with verification..."
+
+# Tell crane to authenticate using the extracted credentials
+crane auth login ghcr.io -u "sowrhoop" -p "$(echo "$B64_AUTH" | base64 -d | cut -d: -f2)"
 
 full_ref=$(crane digest --full-ref "${image_ref}")
 echo "Locked Image Digest: ${full_ref}"
