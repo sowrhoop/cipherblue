@@ -33,6 +33,20 @@ modules:
         destination: /usr
       - source: system/etc
         destination: /etc
+
+  # ============================================================================
+  # CIPHERBLUE NATIVE SECRETS INJECTION
+  # Safely mounts secrets to RAM (/run/secrets) strictly during execution.
+  # ============================================================================
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
+    secrets:
+      - type: env
+        name: HOSTS_BLOCKLIST
+      - type: env
+        name: FLATPAK_WHITELIST
+    scripts:
+      - cipherblue-private.sh
         
   - type: dnf
     source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
