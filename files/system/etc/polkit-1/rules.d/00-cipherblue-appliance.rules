@@ -29,6 +29,8 @@ polkit.addRule(function(action, subject) {
             action.id == "org.freedesktop.NetworkManager.settings.modify.system" ||
             action.id == "org.freedesktop.udisks2.eject-media" ||
             action.id == "org.freedesktop.udisks2.filesystem-mount" ||
+            action.id == "org.freedesktop.udisks2.modify-device" ||
+            action.id == "org.freedesktop.udisks2.power-off-drive" ||
             action.id == "org.freedesktop.login1.inhibit-delay-shutdown" ||
             action.id == "org.freedesktop.login1.power-off" ||
             action.id == "org.freedesktop.login1.reboot" ||
