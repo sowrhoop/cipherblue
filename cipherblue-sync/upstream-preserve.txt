@@ -11,4 +11,3 @@ files/system/etc/yum.repos.d/repo.cipherblue.dev.cipherblue.repo
 files/system/usr/share/pki/rpm-gpg/cipherblue-copr-pubkey.gpg
 files/system/etc/yum.repos.d/cipherblue-packages-fedora.repo
 files/system/usr/lib/udev/rules.d/99-cipherblue.rules
-files/system/usr/libexec/cipherblue/cipherbluecleanup
