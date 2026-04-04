@@ -8,6 +8,10 @@ After=local-fs.target
 [Service]
 Type=oneshot
 ProtectSystem=full
+
+# HARDENING: Punch a micro-hole in ProtectSystem=full just for this exact file.
+ReadWritePaths=/etc/hosts
+
 NoNewPrivileges=yes
 TimeoutStartSec=0
 RemainAfterExit=yes
@@ -18,11 +22,12 @@ ExecStart=/usr/bin/find /dev/mqueue/ -mindepth 1 -delete
 ExecStart=/usr/bin/find /var/tmp/ -mindepth 1 -delete
 
 # ==============================================================================
-# CIPHERBLUE GITOPS HOSTS INJECTOR
+# CIPHERBLUE GITOPS HOSTS INJECTOR (Inode-Preserving Engine)
 # ==============================================================================
-# Extracts the static blocklist baked by the GitHub Runner and cleanly injects
-# it into the live /etc/hosts before the network stack is initialized.
-ExecStart=/usr/bin/sh -c 'sed -i "/# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST/,$d" /etc/hosts && echo "# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST" >> /etc/hosts && cat /etc/cipherblue/hosts.blocklist >> /etc/hosts || true'
+# We cannot use 'sed -i' because it requires write-access to the /etc/ directory 
+# to swap inodes. Instead, we compile the new file in the writable /tmp directory,
+# and use 'cat' to stream the data directly into the existing /etc/hosts inode!
+ExecStart=/usr/bin/sh -c 'sed "/# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST/,$d" /etc/hosts > /tmp/hosts.clean && echo "# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST" >> /tmp/hosts.clean && cat /etc/cipherblue/hosts.blocklist >> /tmp/hosts.clean && cat /tmp/hosts.clean > /etc/hosts && rm -f /tmp/hosts.clean'
 
 # ==============================================================================
 # CIPHERBLUE GARBAGE COLLECTOR (DETERMINISTIC ENGINE)
