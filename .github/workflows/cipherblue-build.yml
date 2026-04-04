@@ -26,22 +26,23 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Sandbox Secret Injection
+      - name: Shift-Left Secret Injection
         env:
           HOSTS_BLOCKLIST: ${{ secrets.CIPHERBLUE_BLOCKLIST }}
           FLATPAK_WHITELIST: ${{ secrets.CIPHERBLUE_FLATPAKS }}
         run: |
-          echo "CIPHERBLUE: Isolating secrets from container build environment..."
+          echo "CIPHERBLUE: Pre-computing immutable state on GitHub Runner..."
           
-          # 1. Inject the Flatpak list (Single line, safe for sed)
-          sed -i "s|__SECRET_FLATPAK_WHITELIST__|${FLATPAK_WHITELIST}|g" files/scripts/cipherblue-private.sh
+          # 1. Format and inject Flatpak Whitelist
+          # Converts the comma-separated secret into a clean newline-separated string
+          FORMATTED_FLATPAKS=$(echo "$FLATPAK_WHITELIST" | tr ',' '\n' | tr -d ' ' | grep -v '^$')
+          export FORMATTED_FLATPAKS
+          perl -0777 -pi -e 's/__SECRET_FLATPAK_WHITELIST__/$ENV{FORMATTED_FLATPAKS}/g' files/system/etc/cipherblue/flatpaks.list
           
-          # 2. Inject the Hosts Blocklist (Multi-line, handled via secure Perl stream)
-          # This guarantees zero escaping errors, regardless of what is in your secret!
-          perl -0777 -pi -e 's/__SECRET_HOSTS_BLOCKLIST__/$ENV{HOSTS_BLOCKLIST}/g' files/scripts/cipherblue-private.sh
+          # 2. Inject Hosts Blocklist safely
+          perl -0777 -pi -e 's/__SECRET_HOSTS_BLOCKLIST__/$ENV{HOSTS_BLOCKLIST}/g' files/system/etc/cipherblue/hosts.blocklist
           
-          chmod +x files/scripts/cipherblue-private.sh
-          echo "CIPHERBLUE: Secrets mathematically hardcoded into execution script."
+          echo "CIPHERBLUE: Secrets mathematically hardcoded into static repository files."
 
       - name: Build Cipherblue Image
         uses: blue-build/github-action@v1.11.1
@@ -52,5 +53,3 @@ jobs:
           pr_event_number: ${{ github.event.number }}
           maximize_build_space: false
           squash: true
-          verify_install: true
-          retry_push_count: 3

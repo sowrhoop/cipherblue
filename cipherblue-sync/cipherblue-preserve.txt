@@ -37,7 +37,6 @@ files/scripts/permission-hardening.sh
 files/scripts/selinux-hardening.sh
 files/scripts/suid-hardening.sh
 files/scripts/systemd-hardening.sh
-files/scripts/cipherblue-private.sh
 
 # Custom Cipherblue System Files
 
@@ -90,6 +89,8 @@ files/system/usr/lib/systemd/user-preset/35-cipherblue-desktop.preset
 files/system/etc/systemd/system/rpm-ostreed-automatic.service.d/override.conf
 files/system/usr/lib/systemd/system/flatpak-system-update.service
 files/system/etc/systemd/journald.conf.d/60-cipherblue-privacy.conf
+files/system/etc/cipherblue/flatpaks.list
+files/system/etc/cipherblue/hosts.blocklist
 
 # Modules
 

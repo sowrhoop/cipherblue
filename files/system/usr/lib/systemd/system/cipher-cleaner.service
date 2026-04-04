@@ -7,8 +7,6 @@ After=local-fs.target
 
 [Service]
 Type=oneshot
-
-# Hardening: Lock system binaries/configs but keep /var and /home writable 
 ProtectSystem=full
 NoNewPrivileges=yes
 TimeoutStartSec=0
@@ -17,25 +15,17 @@ RemainAfterExit=yes
 # 1. Safely clean temporary shared memory and mqueue
 ExecStart=/usr/bin/find /dev/shm/ -mindepth 1 -delete
 ExecStart=/usr/bin/find /dev/mqueue/ -mindepth 1 -delete
-
-# 2. Safely clean /var/tmp 
 ExecStart=/usr/bin/find /var/tmp/ -mindepth 1 -delete
 
 # ==============================================================================
 # CIPHERBLUE GITOPS HOSTS INJECTOR
 # ==============================================================================
-# Bypasses the OCI container bind-mount trap. Extracts the immutable blocklist 
-# and safely injects it into the live /etc/hosts milliseconds before network boot.
+# Extracts the static blocklist baked by the GitHub Runner and cleanly injects
+# it into the live /etc/hosts before the network stack is initialized.
 ExecStart=/usr/bin/sh -c 'sed -i "/# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST/,$d" /etc/hosts && echo "# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST" >> /etc/hosts && cat /etc/cipherblue/hosts.blocklist >> /etc/hosts || true'
 
 # ==============================================================================
 # CIPHERBLUE GARBAGE COLLECTOR (DETERMINISTIC ENGINE)
-# ==============================================================================
-# This loop iterates through /etc/passwd and checks:
-# - Is it root (UID 0)? 
-# - Is it a human user (UID >= 1000)?
-# If so, it checks if the flatpak directory exists, then annihilates it.
-# The '-' prefix tells systemd to continue even if a specific rm fails.
 # ==============================================================================
 ExecStart=-/usr/bin/sh -c 'while IFS=: read -r user pass uid gid info home shell; do \
     if [ "$uid" -eq 0 ] || [ "$uid" -ge 1000 ]; then \
