@@ -84,6 +84,7 @@ These files are explicitly ripped from upstream and pulled into our OS, mathemat
 - `files/system/usr/share/pki/rpm-gpg/cipherblue-copr-pubkey.gpg`
 - `files/system/etc/yum.repos.d/cipherblue-packages-fedora.repo`
 - `files/system/usr/lib/udev/rules.d/99-cipherblue.rules`
+- `files/system/usr/libexec/cipherblue/cipherbluecleanup`
 
 ## ✂️ The Great Wall (Excluded Upstream Files)
 These files and directories were completely annihilated from the upstream pull. Click the dropdowns to see the exact upstream files that were dropped by the wildcard rules.
