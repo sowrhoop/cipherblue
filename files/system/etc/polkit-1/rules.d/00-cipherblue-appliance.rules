@@ -23,10 +23,12 @@ polkit.addRule(function(action, subject) {
         if (action.id == "com.endlessm.ParentalControls.AppFilter.ReadOwn" ||
             action.id == "org.freedesktop.NetworkManager.enable-disable-network" ||
             action.id == "org.freedesktop.NetworkManager.enable-disable-wifi" ||
+            action.id == "org.freedesktop.NetworkManager.wifi.scan" ||
+            action.id == "org.freedesktop.NetworkManager.network-control" ||
+            action.id == "org.freedesktop.NetworkManager.settings.modify.own" ||
+            action.id == "org.freedesktop.NetworkManager.settings.modify.system" ||
             action.id == "org.freedesktop.udisks2.eject-media" ||
             action.id == "org.freedesktop.udisks2.filesystem-mount" ||
-            action.id == "org.freedesktop.NetworkManager.wifi.scan" ||
-            action.id == "org.freedesktop.NetworkManager.settings.modify.own" || // Added permission
             action.id == "org.freedesktop.login1.inhibit-delay-shutdown" ||
             action.id == "org.freedesktop.login1.power-off" ||
             action.id == "org.freedesktop.login1.reboot" ||
