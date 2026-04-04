@@ -12,15 +12,14 @@ notify_ui() {
     
     if [[ -n "$target_user" ]]; then
         local target_uid=$(id -u "$target_user")
-        runuser -u "$target_user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
+        # Apply strict 5-second timeout to prevent D-Bus deadlocks
+        timeout 5 runuser -u "$target_user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
             notify-send -a "Cipherblue Sentinel" -i "$icon" "$title" "$msg" || true
     fi
 }
 
 notify_ui "📡 Network Probe" "Waiting for Cipherblue encrypted DNS tunnel to establish..." "network-wireless"
 until curl -s https://dl.flathub.org > /dev/null; do sleep 5; done
-
-# DESKTOP SESSION GATE REMOVED - Apps will sync silently before login
 
 notify_ui "⚙️ Application State Sync" "Network active. Analyzing Flatpak Vault against GitHub Declarative State..." "software-update-available"
 
