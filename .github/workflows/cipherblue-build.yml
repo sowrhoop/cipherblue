@@ -28,10 +28,6 @@ jobs:
 
       - name: Build Cipherblue Image
         uses: blue-build/github-action@v1.11.1
-        env:
-          # Expose secrets strictly for the BlueBuild secure runner
-          HOSTS_BLOCKLIST: ${{ secrets.CIPHERBLUE_BLOCKLIST }}
-          FLATPAK_WHITELIST: ${{ secrets.CIPHERBLUE_FLATPAKS }}
         with:
           recipe: ${{ matrix.recipe }}
           cosign_private_key: ${{ secrets.SIGNING_SECRET }}
@@ -39,3 +35,9 @@ jobs:
           pr_event_number: ${{ github.event.number }}
           maximize_build_space: false
           squash: true
+          verify_install: true
+          retry_push_count: 3
+        secrets:
+          # Expose secrets strictly for the BlueBuild secure runner
+          CIPHERBLUE_BLOCKLIST: ${{ secrets.CIPHERBLUE_BLOCKLIST }}
+          CIPHERBLUE_FLATPAKS: ${{ secrets.CIPHERBLUE_FLATPAKS }}

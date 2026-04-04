@@ -8,8 +8,8 @@ mkdir -p /etc/cipherblue
 # ==============================================================================
 # 1. PURE DECLARATIVE FLATPAK ENGINE
 # ==============================================================================
-if [[ -f /run/secrets/FLATPAK_WHITELIST ]]; then
-    FLATPAKS=$(cat /run/secrets/FLATPAK_WHITELIST)
+if [[ -f /tmp/secrets/CIPHERBLUE_FLATPAKS ]]; then
+    FLATPAKS=$(cat /tmp/secrets/CIPHERBLUE_FLATPAKS)
     if [[ -n "$FLATPAKS" ]]; then
         echo "Injecting Flatpak whitelist from secure RAM mount..."
         echo "$FLATPAKS" | tr ',' '\n' | tr -d ' ' | grep -v '^$' > /etc/cipherblue/flatpaks.list
@@ -17,7 +17,7 @@ if [[ -f /run/secrets/FLATPAK_WHITELIST ]]; then
         touch /etc/cipherblue/flatpaks.list
     fi
 else
-    echo "Warning: FLATPAK_WHITELIST secret not found in RAM mount."
+    echo "Warning: CIPHERBLUE_FLATPAKS secret not found in RAM mount."
     touch /etc/cipherblue/flatpaks.list
 fi
 
@@ -26,8 +26,8 @@ chmod 644 /etc/cipherblue/flatpaks.list
 # ==============================================================================
 # 2. PRIVATE DOMAIN BLOCKLIST INJECTION
 # ==============================================================================
-if [[ -f /run/secrets/HOSTS_BLOCKLIST ]]; then
-    HOSTS=$(cat /run/secrets/HOSTS_BLOCKLIST)
+if [[ -f /tmp/secrets/CIPHERBLUE_BLOCKLIST ]]; then
+    HOSTS=$(cat /tmp/secrets/CIPHERBLUE_BLOCKLIST)
     if [[ -n "$HOSTS" ]]; then
         echo "Injecting Domain Blocklist from secure RAM mount..."
         echo "$HOSTS" > /etc/cipherblue/hosts.blocklist
@@ -35,7 +35,7 @@ if [[ -f /run/secrets/HOSTS_BLOCKLIST ]]; then
         touch /etc/cipherblue/hosts.blocklist
     fi
 else
-    echo "Warning: HOSTS_BLOCKLIST secret not found in RAM mount."
+    echo "Warning: CIPHERBLUE_BLOCKLIST secret not found in RAM mount."
     touch /etc/cipherblue/hosts.blocklist
 fi
 

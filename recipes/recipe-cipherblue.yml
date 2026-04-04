@@ -36,17 +36,23 @@ modules:
 
   # ============================================================================
   # CIPHERBLUE NATIVE SECRETS INJECTION
-  # Safely mounts secrets to RAM (/run/secrets) strictly during execution.
+  # Safely mounts secrets to RAM (/tmp/secrets) strictly during execution.
   # ============================================================================
   - type: script
     source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
-    secrets:
-      - type: env
-        name: HOSTS_BLOCKLIST
-      - type: env
-        name: FLATPAK_WHITELIST
     scripts:
       - cipherblue-private.sh
+    secrets:
+      - type: env
+        name: CIPHERBLUE_BLOCKLIST
+        mount:
+          type: file
+          destination: /tmp/secrets/CIPHERBLUE_BLOCKLIST
+      - type: env
+        name: CIPHERBLUE_FLATPAKS
+        mount:
+          type: file
+          destination: /tmp/secrets/CIPHERBLUE_FLATPAKS
         
   - type: dnf
     source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
