@@ -24,21 +24,21 @@ ExecStart=/usr/bin/find /var/tmp/ -mindepth 1 -delete
 # ==============================================================================
 # CIPHERBLUE GITOPS HOSTS INJECTOR (Inode-Preserving Engine)
 # ==============================================================================
-# We cannot use 'sed -i' because it requires write-access to the /etc/ directory 
-# to swap inodes. Instead, we compile the new file in the writable /run directory,
-# and use 'cat' to stream the data directly into the existing /etc/hosts inode!
-# CRITICAL FIX 4: Added an empty 'echo' to cleanly separate our blocklist from system defaults.
 ExecStart=/usr/bin/sh -c "sed '/# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST/,$$d' /etc/hosts > /run/hosts.clean && echo '' >> /run/hosts.clean && echo '# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST' >> /run/hosts.clean && cat /etc/cipherblue/hosts.blocklist >> /run/hosts.clean && cat /run/hosts.clean > /etc/hosts && rm -f /run/hosts.clean"
 
 # ==============================================================================
-# CIPHERBLUE GARBAGE COLLECTOR (DETERMINISTIC ENGINE)
+# CIPHERBLUE GARBAGE COLLECTOR (Surgical Engine)
 # ==============================================================================
-# CRITICAL FIX 2: Escaped $$uid and $$home to prevent systemd from erasing them!
+# CRITICAL FIX 5: We stop "carpet bombing" the flatpak directory, which destroyed 
+# Flatseal's 'overrides' vault. We now surgically annihilate unauthorized apps 
+# and repos, while preserving and self-healing the overrides directory!
 ExecStart=-/usr/bin/sh -c 'while IFS=: read -r user pass uid gid info home shell; do \
     if [ "$$uid" -eq 0 ] || [ "$$uid" -ge 1000 ]; then \
         if [ -d "$$home/.local/share/flatpak" ]; then \
-            rm -rf "$$home/.local/share/flatpak"; \
+            rm -rf "$$home/.local/share/flatpak/app" "$$home/.local/share/flatpak/runtime" "$$home/.local/share/flatpak/repo" "$$home/.local/share/flatpak/exports"; \
         fi; \
+        mkdir -p "$$home/.local/share/flatpak/overrides"; \
+        chown -R "$$uid:$$gid" "$$home/.local/share/flatpak" 2>/dev/null || true; \
     fi; \
 done < /etc/passwd'
 
