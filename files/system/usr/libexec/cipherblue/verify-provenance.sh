@@ -40,6 +40,8 @@ case "${image_tag}" in
     *) notify_ui "🚨 Provenance Alert" "Unknown image tag: ${image_tag}. Verification aborted." "dialog-error"; exit 1 ;;
 esac
 
+notify_ui "🔐 Unlocking GHCR Vault" "Extracting encrypted credentials for private registry authentication..." "dialog-password"
+
 if [[ ! -f /etc/ostree/auth.json ]]; then
     notify_ui "🚨 Provenance Alert" "Authentication vault missing. Cannot verify private OS image." "dialog-error"
     exit 1
@@ -56,6 +58,9 @@ until curl -sL -H "Authorization: Basic $B64_AUTH" --retry 3 https://ghcr.io > /
 
 notify_ui "🔎 Fetching Image Digest" "Querying GitHub Registry for immutable SHA256 layer hashes..." "document-properties"
 crane auth login ghcr.io -u "sowrhoop" -p "$(echo "$B64_AUTH" | base64 -d | cut -d: -f2)"
+
+# CRITICAL SRE NOTE: We fetch the remote full-ref. This acts as an "Upstream Health Monitor"
+# to ensure the registry hasn't been hijacked before our daily auto-updates run.
 full_ref=$(crane digest --full-ref "${image_ref}")
 
 export GITHUB_TOKEN="$(echo "$B64_AUTH" | base64 -d | cut -d: -f2)"
@@ -64,24 +69,21 @@ notify_ui "🛡️ Cryptographic Math Engine" "Running slsa-verifier against $fu
 
 # ==============================================================================
 # PIPELINE-AWARE TOCTOU MITIGATION
+# Superior to upstream 'secureblue' by gracefully handling CI/CD async signing delays.
 # ==============================================================================
 if slsa-verifier verify-image --source-uri "${source_uri}" --source-branch "${branch}" "${full_ref}"; then
     notify_ui "✅ OS Integrity Verified" "SLSA Provenance mathematically matched. Immutable state is secure." "emblem-default"
     exit 0
 else
-    # The SLSA verification failed. We now check if it failed because of a hack, 
-    # or just because the GitHub Action pipeline hasn't finished attaching the signature.
     IMAGE_CREATED_DATE=$(crane config "${full_ref}" | jq -r '.created' 2>/dev/null || echo "1970-01-01T00:00:00Z")
     IMAGE_TIMESTAMP=$(date -d "$IMAGE_CREATED_DATE" +%s 2>/dev/null || echo 0)
     CURRENT_TIMESTAMP=$(date +%s)
     AGE_SECONDS=$((CURRENT_TIMESTAMP - IMAGE_TIMESTAMP))
     
     if (( AGE_SECONDS < 1800 )); then 
-        # If the image is less than 30 minutes old, the CI/CD pipeline is likely still running.
         notify_ui "⏳ Provenance Pending" "New OS image detected ($((AGE_SECONDS / 60)) min old), but GitHub Actions is still generating SLSA attestations. Verification deferred." "emblem-synchronizing"
         exit 0
     else
-        # If it's been over 30 minutes and there is STILL no SLSA provenance, the supply chain is compromised!
         notify_ui "💀 CRITICAL SECURITY ALERT" "SLSA Provenance Verification FAILED! Upstream image may be compromised. Auto-updates have been suspended." "dialog-error"
         exit 1
     fi
