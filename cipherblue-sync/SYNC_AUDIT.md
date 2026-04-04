@@ -23,7 +23,6 @@ These files exist in our repo. If upstream pushes a file with the exact same nam
 - `files/scripts/selinux-hardening.sh`
 - `files/scripts/suid-hardening.sh`
 - `files/scripts/systemd-hardening.sh`
-- `files/scripts/cipherblue-private.sh`
 - `files/system/etc/modprobe.d/cipherblue-blacklist.conf`
 - `files/system/etc/NetworkManager/conf.d/60-cipherblue.conf`
 - `files/system/etc/NetworkManager/conf.d/99-disable-connectivity.conf`
@@ -73,6 +72,8 @@ These files exist in our repo. If upstream pushes a file with the exact same nam
 - `files/system/etc/systemd/system/rpm-ostreed-automatic.service.d/override.conf`
 - `files/system/usr/lib/systemd/system/flatpak-system-update.service`
 - `files/system/etc/systemd/journald.conf.d/60-cipherblue-privacy.conf`
+- `files/system/etc/cipherblue/flatpaks.list`
+- `files/system/etc/cipherblue/hosts.blocklist`
 - `modules/cipherblue-signing/cipherblue-signing.sh`
 - `modules/cipherblue-signing/module.yml`
 - `modules/cipherblue-signing/registry-config.yaml`
