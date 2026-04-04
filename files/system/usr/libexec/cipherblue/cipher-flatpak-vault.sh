@@ -20,12 +20,7 @@ notify_ui() {
 notify_ui "📡 Network Probe" "Waiting for Cipherblue encrypted DNS tunnel to establish..." "network-wireless"
 until curl -s https://dl.flathub.org > /dev/null; do sleep 5; done
 
-# DESKTOP SESSION GATE
-while true; do
-    active_user=$(loginctl list-sessions --no-legend | awk '$3 != "gdm" && $3 != "root" {print $3}' | head -n 1)
-    if [[ -n "$active_user" ]]; then break; fi
-    sleep 3
-done
+# DESKTOP SESSION GATE REMOVED - Apps will sync silently before login
 
 notify_ui "⚙️ Application State Sync" "Network active. Analyzing Flatpak Vault against GitHub Declarative State..." "software-update-available"
 

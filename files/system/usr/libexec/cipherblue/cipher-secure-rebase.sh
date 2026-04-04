@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Opportunistic Telemetry: Notifies if a user is present, silently skips if not.
 notify_ui() {
     local title="$1"
     local msg="$2"
@@ -26,18 +27,7 @@ if [[ "$current_ref" != *"ostree-unverified-registry"* ]]; then
     exit 0
 fi
 
-# ==============================================================================
-# THE DESKTOP SESSION GATE
-# ==============================================================================
-echo "CIPHERBLUE: Holding execution until human Wayland session is established..."
-while true; do
-    active_user=$(loginctl list-sessions --no-legend | awk '$3 != "gdm" && $3 != "root" {print $3}' | head -n 1)
-    if [[ -n "$active_user" ]]; then
-        break
-    fi
-    sleep 3
-done
-
+# The Desktop Session Gate has been ANNIHILATED. We start work immediately.
 notify_ui "🔒 Sentinel Bootstrap" "Unverified state detected. Initializing Cryptographic Rebase protocol..." "network-transmit-receive"
 sleep 3
 
@@ -57,8 +47,6 @@ notify_ui "🔐 Vault Verified" "Credentials securely read from native OSTree va
 until curl -sL -H "Authorization: Basic $B64_AUTH" --retry 3 https://ghcr.io > /dev/null; do
     sleep 5
 done
-
-# We removed the sideloading gap. rpm-ostree natively handles the auth now!
 
 notify_ui "⬇️ Executing Secure Pull" "Downloading immutable signed OS from GHCR. This process takes 15-30 minutes depending on network speed..." "software-update-available" "critical"
 
