@@ -59,7 +59,6 @@ These files exist in our repo. If upstream pushes a file with the exact same nam
 - `files/system/usr/lib/systemd/system/cipher-mount-enforcer.service`
 - `files/system/usr/libexec/cipherblue/cipher-flatpak-vault.sh`
 - `files/system/etc/systemd/system/flatpak-system-update.service.d/99-cipherblue-cleanup.conf`
-- `files/system/etc/profile.d/99-cipherblue-flatpak.sh`
 - `files/system/etc/systemd/logind.conf.d/99-cipherblue-tty-lockdown.conf`
 - `files/scripts/cipherblue-lock-layering.sh`
 - `files/system/etc/profile.d/99-cipherblue-kill-shell.sh`
