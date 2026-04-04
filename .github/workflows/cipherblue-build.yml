@@ -26,23 +26,37 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Shift-Left Secret Injection
+      - name: Pure Bash State Generation
         env:
           HOSTS_BLOCKLIST: ${{ secrets.CIPHERBLUE_BLOCKLIST }}
           FLATPAK_WHITELIST: ${{ secrets.CIPHERBLUE_FLATPAKS }}
         run: |
-          echo "CIPHERBLUE: Pre-computing immutable state on GitHub Runner..."
+          echo "CIPHERBLUE: Generating immutable state natively..."
           
-          # 1. Format and inject Flatpak Whitelist
-          # Converts the comma-separated secret into a clean newline-separated string
-          FORMATTED_FLATPAKS=$(echo "$FLATPAK_WHITELIST" | tr ',' '\n' | tr -d ' ' | grep -v '^$')
-          export FORMATTED_FLATPAKS
-          perl -0777 -pi -e 's/__SECRET_FLATPAK_WHITELIST__/$ENV{FORMATTED_FLATPAKS}/g' files/system/etc/cipherblue/flatpaks.list
+          # Ensure target directory exists
+          mkdir -p files/system/etc/cipherblue
           
-          # 2. Inject Hosts Blocklist safely
-          perl -0777 -pi -e 's/__SECRET_HOSTS_BLOCKLIST__/$ENV{HOSTS_BLOCKLIST}/g' files/system/etc/cipherblue/hosts.blocklist
+          # 1. PURE BASH GENERATION: Flatpaks
+          # We don't use sed or perl. We just format the secret and overwrite the file.
+          if [[ -n "$FLATPAK_WHITELIST" ]]; then
+            echo "$FLATPAK_WHITELIST" | tr ',' '\n' | tr -d ' ' | grep -v '^$' > files/system/etc/cipherblue/flatpaks.list
+          else
+            touch files/system/etc/cipherblue/flatpaks.list
+          fi
           
-          echo "CIPHERBLUE: Secrets mathematically hardcoded into static repository files."
+          # 2. PURE BASH GENERATION: Hosts Blocklist
+          # Directly write the multi-line secret to the file
+          if [[ -n "$HOSTS_BLOCKLIST" ]]; then
+            echo "$HOSTS_BLOCKLIST" > files/system/etc/cipherblue/hosts.blocklist
+          else
+            touch files/system/etc/cipherblue/hosts.blocklist
+          fi
+          
+          # Set proper OS blueprint permissions
+          chmod 644 files/system/etc/cipherblue/flatpaks.list
+          chmod 644 files/system/etc/cipherblue/hosts.blocklist
+          
+          echo "CIPHERBLUE: Static files mathematically generated from GitHub Secrets."
 
       - name: Build Cipherblue Image
         uses: blue-build/github-action@v1.11.1
