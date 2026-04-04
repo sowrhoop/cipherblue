@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Opportunistic Telemetry: Notifies if a user is present, silently skips if not.
 notify_ui() {
     local title="$1"
     local msg="$2"
@@ -11,7 +10,8 @@ notify_ui() {
     
     if [[ -n "$target_user" ]]; then
         local target_uid=$(id -u "$target_user")
-        runuser -u "$target_user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
+        # FIX 1: 'timeout 5' forcefully prevents D-Bus infinite hangs
+        timeout 5 runuser -u "$target_user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
             notify-send -a "Cipherblue Sentinel" -u "$urgency" -i "$icon" "$title" "$msg" || true
     fi
 }
@@ -27,7 +27,7 @@ if [[ "$current_ref" != *"ostree-unverified-registry"* ]]; then
     exit 0
 fi
 
-# The Desktop Session Gate has been ANNIHILATED. We start work immediately.
+# Starts immediately in the background without waiting for user
 notify_ui "🔒 Sentinel Bootstrap" "Unverified state detected. Initializing Cryptographic Rebase protocol..." "network-transmit-receive"
 sleep 3
 
@@ -70,12 +70,34 @@ EXIT_CODE=$?
 
 if [ $EXIT_CODE -ne 0 ]; then
     ERROR_TXT=$(tail -n 2 /var/log/cipherblue-rebase.log | tr -d '"' | tr -d "'" | tr '\n' ' ')
+    
+    # Wait for user to be present so they actually see the failure
+    while true; do
+        active_user=$(loginctl list-sessions --no-legend | awk '$3 != "gdm" && $3 != "root" {print $3}' | head -n 1)
+        if [[ -n "$active_user" ]]; then break; fi
+        sleep 5
+    done
+    
     notify_ui "❌ Rebase Failed" "Error: $ERROR_TXT" "dialog-error" "critical"
     exit 1
 fi
 
 touch /var/lib/cipherblue-signed-rebase.stamp
+
+# ==============================================================================
+# FIX 3: FINAL DESKTOP SESSION GATE
+# ==============================================================================
+# The download is complete, but we PAUSE here until the user physically logs in.
+# This prevents surprise reboots while the user is at the GDM login screen!
+while true; do
+    active_user=$(loginctl list-sessions --no-legend | awk '$3 != "gdm" && $3 != "root" {print $3}' | head -n 1)
+    if [[ -n "$active_user" ]]; then break; fi
+    sleep 5
+done
+
 notify_ui "✅ Lockdown Complete" "Cipherblue Image verified and staged. The system will forcefully reboot in 10 seconds." "system-reboot" "critical"
 
 sleep 10
-systemctl reboot
+
+# FIX 2: '--no-block' prevents systemd IPC shutdown deadlocks
+systemctl reboot --no-block
