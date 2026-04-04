@@ -5,7 +5,6 @@
 set -euo pipefail
 export HOME=${HOME:-~}
 
-# Standardized, non-blocking opportunistic telemetry
 notify_ui() {
     local title="$1"
     local msg="$2"
@@ -14,7 +13,8 @@ notify_ui() {
     
     if [[ -n "$target_user" ]]; then
         local target_uid=$(id -u "$target_user")
-        runuser -u "$target_user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
+        # Apply strict 5-second timeout to prevent D-Bus deadlocks
+        timeout 5 runuser -u "$target_user" -- env DBUS_SESSION_BUS_ADDRESS="unix:path=/run/user/${target_uid}/bus" \
             notify-send -a "Cipherblue Sentinel" -u "critical" -i "$icon" "$title" "$msg" || true
     fi
 }
