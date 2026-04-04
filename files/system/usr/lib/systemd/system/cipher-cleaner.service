@@ -27,15 +27,16 @@ ExecStart=/usr/bin/find /var/tmp/ -mindepth 1 -delete
 ExecStart=/usr/bin/sh -c "sed '/# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST/,$$d' /etc/hosts > /run/hosts.clean && echo '' >> /run/hosts.clean && echo '# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST' >> /run/hosts.clean && cat /etc/cipherblue/hosts.blocklist >> /run/hosts.clean && cat /run/hosts.clean > /etc/hosts && rm -f /run/hosts.clean"
 
 # ==============================================================================
-# CIPHERBLUE GARBAGE COLLECTOR (Surgical Engine)
+# CIPHERBLUE GARBAGE COLLECTOR (Zero-Trust Whitelist Engine)
 # ==============================================================================
-# CRITICAL FIX 5: We stop "carpet bombing" the flatpak directory, which destroyed 
-# Flatseal's 'overrides' vault. We now surgically annihilate unauthorized apps 
-# and repos, while preserving and self-healing the overrides directory!
+# CRITICAL FIX 6: Shifted from Blacklist to Whitelist architecture.
+# We use 'find' to target ALL files and folders inside the flatpak directory, 
+# excluding ONLY the 'overrides' folder. This perfectly sweeps orphaned icons, 
+# databases, and remnants of user-installed apps.
 ExecStart=-/usr/bin/sh -c 'while IFS=: read -r user pass uid gid info home shell; do \
     if [ "$$uid" -eq 0 ] || [ "$$uid" -ge 1000 ]; then \
         if [ -d "$$home/.local/share/flatpak" ]; then \
-            rm -rf "$$home/.local/share/flatpak/app" "$$home/.local/share/flatpak/runtime" "$$home/.local/share/flatpak/repo" "$$home/.local/share/flatpak/exports"; \
+            /usr/bin/find "$$home/.local/share/flatpak" -mindepth 1 -maxdepth 1 ! -name "overrides" -exec rm -rf {} +; \
         fi; \
         mkdir -p "$$home/.local/share/flatpak/overrides"; \
         chown -R "$$uid:$$gid" "$$home/.local/share/flatpak" 2>/dev/null || true; \
