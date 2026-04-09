@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+# SPDX-FileCopyrightText: Copyright 2025-2026 The Cipherblue Authors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+set -euo pipefail
+
+echo "Disabling the alsa state daemon"
+systemctl disable alsa-state.service
+systemctl mask alsa-state.service

@@ -1,0 +1,8 @@
+[Unit]
+Description=Cipherblue Automated App Updater
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cipherblue/cipher-flatpak-update.sh

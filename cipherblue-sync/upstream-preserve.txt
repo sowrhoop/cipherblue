@@ -1,0 +1,13 @@
+# upstream-preserve.txt
+
+# Files explicitly synced from upstream, bypassing blanket exclude rules.
+
+# These files will continuously update whenever upstream pushes changes.
+
+# Upstream Udev Rules (Note: use the rebranded cipherblue name!)
+
+files/system/usr/share/pki/rpm-gpg/cipherblue.gpg
+files/system/etc/yum.repos.d/repo.cipherblue.dev.cipherblue.repo
+files/system/usr/share/pki/rpm-gpg/cipherblue-copr-pubkey.gpg
+files/system/etc/yum.repos.d/cipherblue-packages-fedora.repo
+files/system/usr/lib/udev/rules.d/99-cipherblue.rules

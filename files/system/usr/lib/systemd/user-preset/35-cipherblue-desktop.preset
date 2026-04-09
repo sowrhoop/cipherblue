@@ -1,0 +1,13 @@
+# SPDX-License-Identifier: Apache-2.0
+# Cipherblue Zero-Touch Appliance Overrides
+
+# CRITICAL FIX: Disable upstream flatpak setup to protect our Verified FLOSS Vault
+disable cipherblue-flatpak-setup.timer
+
+# CRITICAL FIX: User-level flatpaks and Homebrew are mathematically banned
+disable flatpak-user-update.timer
+disable brew-update.timer
+disable brew-upgrade.timer
+
+# Safe upstream hardware checks
+enable cipherblue-firmware-check.timer

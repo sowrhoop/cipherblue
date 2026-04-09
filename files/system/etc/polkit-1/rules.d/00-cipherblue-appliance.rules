@@ -1,0 +1,105 @@
+// SPDX-License-Identifier: Apache-2.0
+// Cipherblue Absolute Zero-Trust Appliance Engine
+
+polkit.addRule(function(action, subject) {
+    
+    // HELPER: Send telemetry via logger for the Sentinel Daemon to catch
+    function sendTelemetry(message) {
+        try {
+            polkit.spawn(["/usr/bin/logger", message]);
+        } catch (error) {
+            // Fail silently
+        }
+    }
+
+    // 0. SYSTEM SERVICE BYPASS (CRITICAL ARCHITECTURAL REQUIREMENT)
+    // Prevents background root daemons from triggering infinite retry loops and ghost notifications.
+    if (subject.user == "root") {
+        return polkit.Result.YES;
+    }
+
+    // 1. HARD DENY - ALL OS & PACKAGE STATE MUTATIONS
+    if (action.id.indexOf("org.freedesktop.Flatpak.") === 0 ||
+        action.id.indexOf("org.projectatomic.rpmostree1.") === 0) {
+        
+        sendTelemetry("CIPHERBLUE: State mutation blocked -> " + action.id);
+        return polkit.Result.NO;
+    }
+
+    // 2. GNOME CONTROL CENTER WHITELIST 
+    if (subject.active == true && subject.local == true) {
+        
+        // TIER 1: FRICTIONLESS ACTIONS -> NO PASSWORD REQUIRED
+        // Harmless, everyday actions that do not alter the system state or security perimeter.
+        if (action.id == "org.freedesktop.NetworkManager.enable-disable-network" ||
+            action.id == "org.freedesktop.NetworkManager.enable-disable-wifi" ||
+            action.id == "org.freedesktop.NetworkManager.wifi.scan" ||
+            action.id == "org.freedesktop.NetworkManager.network-control" ||
+            action.id == "org.freedesktop.NetworkManager.settings.modify.own" ||
+            action.id == "org.freedesktop.NetworkManager.settings.modify.system" ||
+            action.id == "org.freedesktop.udisks2.eject-media" ||
+            action.id == "org.freedesktop.udisks2.filesystem-mount" ||
+            action.id == "org.freedesktop.udisks2.modify-device" ||
+            action.id == "org.freedesktop.udisks2.power-off-drive" ||
+            action.id == "org.freedesktop.login1.inhibit-delay-shutdown" ||
+            action.id == "org.freedesktop.login1.inhibit-delay-sleep" ||
+            action.id == "org.freedesktop.login1.inhibit-block-sleep" ||
+            action.id == "org.freedesktop.login1.inhibit-block-shutdown" ||
+            action.id == "org.freedesktop.login1.power-off" ||
+            action.id == "org.freedesktop.login1.reboot" ||
+            action.id == "org.freedesktop.login1.suspend" ||
+            action.id == "org.freedesktop.udisks2.rescan" ||
+            action.id == "org.freedesktop.udisks2.open-device" ||
+            action.id == "com.endlessm.ParentalControls.AppFilter.ReadOwn") {
+            
+            return polkit.Result.YES;
+        }
+
+        // TIER 2: SECURE ACTIONS -> REQUIRE ADMIN AUTHENTICATION
+        // Sensitive system modifications. Demands the user actively prove their identity.
+        if (action.id == "org.gnome.controlcenter.datetime.configure" ||
+            action.id == "org.freedesktop.hostname1.set-hostname" ||
+            action.id == "org.freedesktop.hostname1.set-static-hostname" ||
+            action.id == "org.freedesktop.locale1.set-locale" ||
+            action.id == "org.freedesktop.timedate1.set-ntp" ||
+            action.id == "org.freedesktop.timedate1.set-time" ||
+            action.id == "org.freedesktop.timedate1.set-timezone" ||
+            action.id == "org.freedesktop.locale1.set-keyboard") {
+            
+            return polkit.Result.AUTH_ADMIN_KEEP;
+        }
+    }
+
+    // TIER 3: SILENT DROP -> NO NOTIFICATION
+    // Background GNOME noise that is mathematically blocked but stripped from telemetry to prevent UI spam.
+    if (action.id == "org.freedesktop.NetworkManager.checkpoint-rollback" ||
+        action.id == "org.freedesktop.NetworkManager.enable-disable-connectivity-check" ||
+        action.id == "org.freedesktop.NetworkManager.enable-disable-statistics" ||
+        action.id == "org.freedesktop.NetworkManager.enable-disable-wimax" ||
+        action.id == "org.freedesktop.NetworkManager.enable-disable-wwan" ||
+        action.id == "org.freedesktop.NetworkManager.reload" ||
+        action.id == "org.freedesktop.NetworkManager.settings.modify.hostname" ||
+        action.id == "org.freedesktop.NetworkManager.wifi.share.protected" ||
+        action.id == "org.freedesktop.NetworkManager.settings.modify.global-dns" ||
+        action.id == "org.freedesktop.NetworkManager.wifi.share.open" ||
+        action.id == "org.freedesktop.login1.suspend-ignore-inhibit" ||
+        action.id == "org.freedesktop.login1.set-reboot-to-boot-loader-menu" ||
+        action.id == "org.freedesktop.color-manager.create-device" ||
+        action.id == "org.freedesktop.login1.inhibit-handle-power-key" ||
+        action.id == "org.opensuse.cupspkhelper.mechanism.all-edit" ||
+        action.id == "org.gnome.controlcenter.user-accounts.administration" ||
+        action.id == "org.freedesktop.login1.inhibit-handle-lid-switch" ||
+        action.id == "org.freedesktop.login1.inhibit-handle-reboot-key" ||
+        action.id == "org.freedesktop.login1.inhibit-handle-suspend-key" ||
+        action.id == "org.freedesktop.RealtimeKit1.acquire-high-priority" ||
+        action.id == "org.freedesktop.RealtimeKit1.acquire-real-time" ||
+        action.id == "org.freedesktop.accounts.change-own-user-data" ||
+        action.id == "org.freedesktop.NetworkManager.sleep-wake") {
+        
+        return polkit.Result.NO;
+    }
+
+    // 4. THE GREAT WALL
+    sendTelemetry("CIPHERBLUE: General action blocked -> " + action.id);
+    return polkit.Result.NO;
+});

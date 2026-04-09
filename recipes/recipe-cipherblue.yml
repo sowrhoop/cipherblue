@@ -1,0 +1,128 @@
+name: cipherblue
+
+description: "Hardened Minimal Silverblue Image"
+
+base-image: quay.io/fedora/fedora-silverblue
+
+image-version: latest
+
+cosign-version: none
+nushell-version: none
+
+platforms:
+  - linux/amd64
+
+modules:
+  - type: files
+    source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
+    files:
+      - source: system/usr
+        destination: /usr
+      - source: system/etc
+        destination: /etc
+
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
+    scripts:
+      - cipherblue-private.sh
+    secrets:
+      - type: env
+        name: CIPHERBLUE_BLOCKLIST
+        mount:
+          type: file
+          destination: /tmp/secrets/CIPHERBLUE_BLOCKLIST
+      - type: env
+        name: CIPHERBLUE_FLATPAKS
+        mount:
+          type: file
+          destination: /tmp/secrets/CIPHERBLUE_FLATPAKS
+
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
+    scripts:
+      - httpsmirrors.sh
+
+  - type: dnf
+    source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
+    install:
+      install-weak-deps: false
+      packages:
+        - hardened_malloc
+        - openssl
+        - patch
+        - sbsigntools
+        - no_rlimit_as
+        - crane
+        - slsa-verifier
+        - gnome-tweaks
+        - tlp
+        - fscrypt
+        - wl-clipboard
+
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
+    scripts:
+      - unprotectsudo.sh
+      - check-rpm-ostree-version.sh
+      - install-trivalent.sh
+      - installselinuxpolicies.sh
+      - package-remover.sh
+      - libdnf5-clear-history.sh
+
+  - type: rpm-ostree
+    install:
+      - gnome-disk-utility
+    remove:
+      - buildah
+      - crun
+      - dnf5
+      - fedora-logos
+      - fedora-logos-httpd
+      - libdnf5
+      - libdnf5-cli
+      - sdbus-cpp
+      - yajl
+
+  - type: files
+    source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
+    files:
+      - source: system/usr
+        destination: /usr
+      - source: system/etc
+        destination: /etc
+
+  - type: script
+    source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
+    scripts:
+      - httpsmirrors.sh
+      - set-ld-preload.sh
+      - cipherblue-lock-layering.sh
+      - cipherblue-compile-dconf.sh
+      - hardened_malloc-pam.sh
+      - authselect-hardening.sh
+      - permission-hardening.sh
+      - disablegeoclue.sh
+      - disable-sshd-vsock.sh
+      - removefedoraflatpakremoteservice.sh
+      - setchronysysconfig.sh
+      - removedkmshelper.sh
+      - disablecups.sh
+      - disablesshd.sh
+      - disableavahidaemon.sh
+      - disablealsastate.sh
+      - disablemodemmanager.sh
+      - disablenfsdaemons.sh
+      - disablesssd.sh
+      - disableunconfinedrootfulservices.sh
+      - systemd-hardening.sh
+      - selinux-hardening.sh
+      - addimageinfo.sh
+      - removeunusedrepos.sh
+      - cipherblue-cleanup.sh
+      - suid-hardening.sh
+      - enable-preset-services.sh
+      - ensuresudoabsent.sh
+      - check-selinux-fcontext.sh
+
+  - type: cipherblue-signing
+    source: local

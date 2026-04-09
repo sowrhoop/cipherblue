@@ -1,0 +1,173 @@
+# cipherblue-exclude.txt
+
+# Exclusions used by cipherblue-sync/sync-upstream-to-cipherblue.sh
+
+# Keep this file tidy: grouped, deduplicated and alphabetically ordered
+
+# Root-level bloat (leading slash anchors to the repository root)
+
+/.github/**
+/LICENSES
+/docs
+/recipes/iot
+/recipes/securecore
+
+# Upstream interactive tools and completions
+
+# (exclude interactive binaries and their completions)
+
+files/system/usr/bin/ugum
+files/system/usr/bin/ujust
+files/system/usr/share/bash-completion/completions/ujust
+files/system/usr/share/fish/**
+
+# Just / Python / patch sources
+
+**/.just
+**/.py
+**/*.patch
+
+# Upstream justfiles and translations
+
+files/justfiles/**
+files/po/**
+
+# System variants to ignore (do not copy these downstream)
+
+files/system/cosmic/**
+files/system/kinoite/**
+files/system/sericea/**
+files/system/server/**
+files/system/zfs/**
+files/system/nvidia/**
+
+# Minimal Silverblue specific exclusions
+
+files/system/desktop/etc/skel/.config/libvirt/qemu.conf
+files/system/desktop/etc/tmpfiles.d/homebrew.conf
+files/system/desktop/usr/lib/tmpfiles.d/libvirt-fix-secontexts.conf
+files/system/etc/containers/registries.d/**
+files/system/etc/containers/toolbox.conf
+files/system/etc/distrobox/**
+files/system/etc/toolbox/**
+files/system/etc/yum.repos.d/**
+files/system/usr/lib/dracut/dracut.conf.d/90-ublue-luks.conf
+files/system/usr/libexec/**
+files/system/usr/lib/ujust/**
+files/system/usr/share/backgrounds/**
+files/system/usr/share/bazaar/**
+files/system/usr/share/cipherblue/**
+files/system/usr/share/distrobox/**
+files/system/etc/pki/containers/**
+files/system/usr/share/ublue-os/**
+files/system/usr/bin/ugum
+files/system/etc/profile.d/ujust-chooser.sh
+files/system/etc/profile.d/user-motd.sh
+files/system/etc/profile.d/xx-bash-prompt-command.sh
+files/system/usr/lib/systemd/system/brew-setup-migration.service
+files/system/etc/NetworkManager/conf.d/dnsconfd.conf
+files/system/etc/tmpfiles.d/unbound.conf
+files/system/etc/unbound/conf.d/cipherblue.conf
+files/system/usr/lib/systemd/system/dnsconfd.service.d/cipherblue.conf
+files/system/usr/lib/systemd/system/unbound-control.socket
+files/system/usr/lib/systemd/system/unbound.socket
+files/system/usr/lib/systemd/system/unbound.service.d/cipherblue.conf
+files/system/usr/lib/systemd/system/cipherblue-unbound-key.service
+files/system/usr/lib/systemd/user/cipherblue-flatpak-setup.service
+files/system/usr/lib/systemd/user/cipherblue-flatpak-setup.timer
+files/system/usr/lib/systemd/user/cipherblue-key-enrollment-verification.service
+files/system/usr/lib/systemd/user/cipherblue-key-enrollment-verification.timer
+files/system/usr/lib/systemd/user/cipherblue-update-verification.service
+files/system/usr/lib/systemd/user/cipherblue-update-verification.timer
+files/system/usr/lib/systemd/user/flatpak-user-update.service
+files/system/usr/lib/systemd/user/flatpak-user-update.timer
+files/system/usr/lib/systemd/user/security-update-notification.path
+files/system/usr/lib/systemd/user/security-update-notification.service
+files/system/etc/systemd/system/rpm-ostreed-automatic.timer.d/**
+files/system/usr/share/pki/**
+files/system/usr/lib/systemd/system/flatpak-system-update.timer
+files/system/usr/lib/systemd/system/flatpak-system-update.service
+files/system/usr/lib/systemd/user/cipherblue-firmware-check.service
+files/system/usr/lib/systemd/user/cipherblue-firmware-check.timer
+files/system/usr/lib/systemd/system/cipherbluecleanup.service
+files/system/etc/sysctl.d/61-ptrace-scope.conf
+files/system/usr/lib/systemd/user-preset/40-cipherblue.preset
+
+# Unnecessary recipes (not used by cipherblue)
+
+recipes/common/cosmic-modules.yml
+recipes/common/kinoite-modules.yml
+recipes/common/nvidia-install.yml
+recipes/common/proprietary-modules.yml
+recipes/common/sericea-modules.yml
+recipes/common/server-modules.yml
+recipes/common/zfs-modules.yml
+recipes/general/recipe-cosmic-main.yml
+recipes/general/recipe-cosmic-nvidia-open.yml
+recipes/general/recipe-cosmic-nvidia.yml
+recipes/general/recipe-kinoite-main.yml
+recipes/general/recipe-kinoite-nvidia-open.yml
+recipes/general/recipe-kinoite-nvidia.yml
+recipes/general/recipe-sericea-main.yml
+recipes/general/recipe-sericea-nvidia-open.yml
+recipes/general/recipe-sericea-nvidia.yml
+recipes/general/recipe-silverblue-nvidia-open.yml
+recipes/general/recipe-silverblue-nvidia.yml
+
+# Exclude certificates directories under scripts
+
+files/scripts/certs/**
+
+# Unneeded scripts when syncing files/scripts/ (alphabetical)
+
+files/scripts/addrepos.sh
+files/scripts/authselect.sh
+files/scripts/checksinglekernel.sh
+files/scripts/createautostartdir.sh
+files/scripts/createjustcompletions.sh
+files/scripts/disable-coreos-migration-motd.sh
+files/scripts/disablewlrportals.sh
+files/scripts/hardenlogindefs.patch
+files/scripts/hardenlogindefs.sh
+files/scripts/installandroidudev.sh
+files/scripts/installnvidiakmod.sh
+files/scripts/installnvidiapackages.sh
+files/scripts/installpinnedkernel.sh
+files/scripts/installrar.sh
+files/scripts/installsubresourcefilter.sh
+files/scripts/installzfskmod.sh
+files/scripts/localization.sh
+files/scripts/manuallyinstalljust.sh
+files/scripts/regenerateinitramfs.sh
+files/scripts/removekrunnerappstream.sh
+files/scripts/setdefaultkdewallpapers.sh
+files/scripts/setdrmvariables.sh
+files/scripts/setearlyloading.sh
+files/scripts/setserverdefaultzone.sh
+files/scripts/setswaynvidiaenvironment.sh
+files/scripts/sign-check.sh
+files/scripts/signkernel.sh
+files/scripts/signmodules.sh
+files/scripts/disableresolved.sh
+files/scripts/setup-dnsconfd.sh
+
+# Vendor-specific udev rules (hardware specific; keep cipherblue.rules)
+
+files/system/etc/udev/rules.d/**
+files/system/usr/lib/udev/rules.d/**
+
+# Miscellaneous (small local exceptions)
+
+files/system/etc/pki/akmods/certs/akmods-cipherblue.der
+files/system/etc/profile.d/sudo-missing-message.sh
+files/system/usr/lib/systemd/user/image-deprecation-notice.service
+modules/cipherblue-signing/policy.json
+files/system/usr/lib/sysusers.d/android-udev.conf
+
+# gschema-overrides
+
+files/gschema-overrides/zz1-cipherblue.gschema.override
+
+# Project Root Bloat
+tools
+pyproject.toml

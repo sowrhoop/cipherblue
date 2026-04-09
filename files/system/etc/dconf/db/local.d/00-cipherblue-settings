@@ -1,0 +1,97 @@
+[org/gnome/desktop/lockdown]
+disable-command-line=true
+disable-printing=true
+disable-print-setup=true
+disable-show-password=true
+user-administration-disabled=true
+
+[org/gnome/shell]
+favorite-apps=['trivalent.desktop', 'org.gnome.Nautilus.desktop', 'com.github.tchx84.Flatseal.desktop']
+enabled-extensions=@as []
+development-tools=false
+allow-extension-installation=false
+disable-user-extensions=true
+
+[org/gnome/desktop/interface]
+color-scheme='prefer-dark'
+gtk-theme='adw-gtk3'
+font-antialiasing='rgba'
+
+[org/gnome/desktop/background]
+picture-uri='file:///usr/share/backgrounds/cipherblue/cipherblue-blue.svg'
+picture-uri-dark='file:///usr/share/backgrounds/cipherblue/cipherblue-black.svg'
+
+[org/gnome/online-accounts]
+whitelisted-providers=@as []
+
+[org/gnome/desktop/media-handling]
+automount=false
+automount-open=false
+autorun-never=true
+
+[org/gnome/desktop/wm/preferences]
+button-layout='appmenu:minimize,maximize,close'
+
+# Zero-Trust: Telemetry and GeoIP tracking mathematically disabled
+[org/gnome/system/location]
+enabled=false
+
+[org/gnome/desktop/privacy]
+remember-recent-files=false
+remove-old-trash-files=true
+remove-old-temp-files=true
+report-technical-problems=false
+send-software-usage-stats=false
+remember-app-usage=false
+disable-camera=true
+disable-microphone=true
+
+[org/gnome/desktop/remote-desktop/rdp]
+enable=false
+
+[org/gnome/desktop/remote-desktop/vnc]
+enable=false
+
+[org/gnome/desktop/peripherals/touchpad]
+click-method='areas'
+disable-while-typing=false
+tap-to-click=true
+two-finger-scrolling-enabled=false
+
+[org/gnome/mutter]
+center-new-windows=true
+
+[org/gnome/desktop/screensaver]
+lock-enabled=true
+lock-delay=uint32 0
+
+[org/gnome/desktop/session]
+idle-delay=uint32 300
+
+[org/gnome/desktop/notifications]
+show-in-lock-screen=false
+
+[org/gnome/desktop/search-providers]
+disable-external=true
+
+[org/freedesktop/Tracker3/Miner/Files]
+enable-monitors=false
+index-recursive-directories=@as []
+index-single-directories=@as []
+ignored-directories=['*']
+ignored-directories-with-content=['*']
+
+[org/freedesktop/tracker/miner/files]
+enable-monitors=false
+index-recursive-directories=@as []
+index-single-directories=@as []
+ignored-directories=['*']
+ignored-directories-with-content=['*']
+
+[org/gnome/settings-daemon/plugins/media-keys]
+custom-keybindings=@as []
+terminal=@as []
+
+# Explicitly disable GNOME's Location-based Timezone polling
+[org/gnome/desktop/datetime]
+automatic-timezone=false

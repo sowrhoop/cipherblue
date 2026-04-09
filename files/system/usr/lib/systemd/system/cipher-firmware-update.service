@@ -1,0 +1,8 @@
+[Unit]
+Description=Cipherblue Automated Firmware Updater
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cipherblue/cipher-firmware-update.sh

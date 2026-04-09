@@ -1,0 +1,7 @@
+[Unit]
+Description=Cipherblue Configuration Drift Auditor
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cipherblue/cipher-audit-drift.sh

@@ -1,0 +1,13 @@
+[Unit]
+Description=Cipherblue Bootloader Lockdown Service
+ConditionPathExists=!/boot/grub2/user.cfg
+After=local-fs.target
+Before=sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cipherblue/cipher-grub-lockdown.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
