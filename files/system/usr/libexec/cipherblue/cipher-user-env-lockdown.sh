@@ -1,93 +1,107 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
 #
-# CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v4.0 - STRICT WHITELIST)
-# Enforces a strict Default-Deny policy on the user's home directory.
-# Purges all unapproved dotfiles/directories and mathematically freezes the 
-# directory nodes to prevent any future creation of non-whitelisted paths.
+# CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v5.0 - DYNAMIC STRICT WHITELIST)
+# Enforces a strict Default-Deny policy. Recursively unlocks and purges all
+# unapproved files/dotfiles, guarantees the existence of whitelisted paths,
+# and freezes directory nodes globally.
 
 set -euo pipefail
 source /usr/libexec/cipherblue/cipher-core.sh
 
-cipher_log "Engaging v4.0 Strict Whitelist Immutability Engine..."
+cipher_log "Engaging v5.0 Dynamic Whitelist Immutability Engine..."
 
+# ========================================================================
+# 1. THE MASTER DECLARATIVE WHITELISTS
+# ========================================================================
+ALLOWED_HOME=("Aegis" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var" ".ssh" ".gnupg")
+ALLOWED_LOCAL=("share" "state")
+ALLOWED_CONFIG=(
+    "dconf" "containers" "gtk-3.0" "gtk-4.0" "pulse" "pipewire" 
+    "user-dirs.dirs" "user-dirs.locale" "mimeapps.list" "systemd" 
+    "gnome-session" "nautilus" "goa-1.0" "evolution"
+)
+
+# ========================================================================
+# 2. THE RECONCILIATION FUNCTION
+# ========================================================================
+enforce_whitelist() {
+    local target_dir=$1
+    shift
+    local whitelist=("$@")
+
+    if [ ! -d "$target_dir" ]; then return 0; fi
+
+    cipher_log "Reconciling node: $target_dir"
+
+    # Unlock the parent node to allow internal mutations
+    chattr -i "$target_dir" 2>/dev/null || true
+
+    # PHASE A: Detect and Obliterate Unapproved Entities
+    while IFS= read -r -d '' item; do
+        basename_item=$(basename "$item")
+        
+        is_allowed=false
+        for allowed in "${whitelist[@]}"; do
+            if [[ "$basename_item" == "$allowed" ]]; then 
+                is_allowed=true
+                break
+            fi
+        done
+
+        if [[ "$is_allowed" == false ]]; then
+            # Strip previous kernel locks before destroying
+            chattr -R -i "$item" 2>/dev/null || true
+            rm -rf "$item"
+        fi
+    done < <(find "$target_dir" -mindepth 1 -maxdepth 1 -print0)
+
+    # PHASE B: Guarantee Existence of Whitelisted Entities
+    for allowed in "${whitelist[@]}"; do
+        local full_path="$target_dir/$allowed"
+        if [ ! -e "$full_path" ]; then
+            # Create files for specific extensions, directories for everything else
+            if [[ "$allowed" == *.* && "$allowed" != .* ]]; then
+                install -D -o "$user" -g "$user" -m 600 /dev/null "$full_path"
+            else
+                install -d -o "$user" -g "$user" -m 700 "$full_path"
+            fi
+        fi
+    done
+
+    # PHASE C: Freeze the Directory Node
+    chattr +i "$target_dir" 2>/dev/null || true
+}
+
+# ========================================================================
+# 3. EXECUTION ENGINE
+# ========================================================================
 mapfile -t HUMAN_USERS < <(awk -F: '$3 >= 1000 && $3 != 65534 {print $1}' /etc/passwd)
 
 for user in "${HUMAN_USERS[@]}"; do
     user_home="$(getent passwd "$user" | cut -d: -f6)"
     if [ ! -d "$user_home" ]; then continue; fi
-    
-    cipher_log "Executing Great Purge for user: $user"
 
-    # 1. TEMPORARILY UNLOCK EVERYTHING FOR CLEANUP
-    chattr -R -i "$user_home" 2>/dev/null || true
-
-    # ========================================================================
-    # 2. THE MASTER WHITELISTS
-    # ========================================================================
-    ALLOWED_HOME=("Aegis" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var" ".ssh" ".gnupg")
-    ALLOWED_LOCAL=("share" "state")
+    # Apply Whitelists
+    enforce_whitelist "$user_home" "${ALLOWED_HOME[@]}"
+    enforce_whitelist "$user_home/.local" "${ALLOWED_LOCAL[@]}"
+    enforce_whitelist "$user_home/.config" "${ALLOWED_CONFIG[@]}"
 
     # ========================================================================
-    # 3. PHASE 1: THE HOME DIRECTORY PURGE
+    # 4. SURGICAL BLACKLISTS INSIDE WHITELISTED ZONES
     # ========================================================================
-    # Iterate through ALL files and hidden files. If not on the whitelist, destroy it.
-    find "$user_home" -mindepth 1 -maxdepth 1 | while read -r item; do
-        basename_item=$(basename "$item")
-        if [[ ! " ${ALLOWED_HOME[*]} " =~ " ${basename_item} " ]]; then
-            rm -rf "$item"
-        fi
-    done
+    # Ensure systemd user units cannot execute malware
+    rm -rf "$user_home/.config/systemd/user"
+    install -d -o "$user" -g "$user" -m 700 "$user_home/.config/systemd/user"
+    chattr +i "$user_home/.config/systemd/user" 2>/dev/null || true
 
-    # Reconstruct required whitelist directories with strict permissions
-    for d in "${ALLOWED_HOME[@]}"; do
-        install -d -o "$user" -g "$user" -m 700 "$user_home/$d"
-    done
-
-    # ========================================================================
-    # 4. PHASE 2: THE .local DIRECTORY PURGE
-    # ========================================================================
-    find "$user_home/.local" -mindepth 1 -maxdepth 1 | while read -r item; do
-        basename_item=$(basename "$item")
-        if [[ ! " ${ALLOWED_LOCAL[*]} " =~ " ${basename_item} " ]]; then
-            rm -rf "$item"
-        fi
-    done
-
-    for d in "${ALLOWED_LOCAL[@]}"; do
-        install -d -o "$user" -g "$user" -m 700 "$user_home/.local/$d"
-    done
-
-    # ========================================================================
-    # 5. PHASE 3: SURGICAL BLACKLISTS INSIDE MUTABLE ZONES (.config)
-    # ========================================================================
-    # .config MUST remain mutable so GNOME and Wayland can function.
-    # However, we must explicitly destroy and freeze the known execution vectors inside it.
-    DANGEROUS_CONFIGS=("autostart" "systemd/user" "environment.d")
-    for dc in "${DANGEROUS_CONFIGS[@]}"; do
-        rm -rf "$user_home/.config/$dc"
-        install -d -o "$user" -g "$user" -m 700 "$user_home/.config/$dc"
-        chattr +i "$user_home/.config/$dc" 2>/dev/null || true
-    done
-
-    # Annihilate Flatseal overrides completely
-    rm -rf "$user_home/.local/share/flatpak/overrides"
-    install -d -o "$user" -g "$user" -m 700 "$user_home/.local/share/flatpak/overrides"
-    chattr +i "$user_home/.local/share/flatpak/overrides" 2>/dev/null || true
-
-    # Lock SSH configuration to prevent ProxyCommand hijacks
+    # Ensure SSH proxy command hooking is mathematically impossible
     install -D -o "$user" -g "$user" -m 600 /dev/null "$user_home/.ssh/config"
     install -D -o "$user" -g "$user" -m 600 /dev/null "$user_home/.ssh/authorized_keys"
     chattr +i "$user_home/.ssh/config" "$user_home/.ssh/authorized_keys" 2>/dev/null || true
-
-    # ========================================================================
-    # 6. PHASE 4: KERNEL DIRECTORY NODE LOCKDOWN
-    # ========================================================================
-    # We lock the directory nodes themselves. This means NO NEW FILES can be created 
-    # directly inside ~ or ~/.local, but the whitelisted subdirectories remain functional.
-    chattr +i "$user_home"
-    chattr +i "$user_home/.local"
-
+    
+    # Secure permissions
+    chmod 700 "$user_home"
 done
 
 cipher_log "Strict Whitelist architecture successfully enforced."
