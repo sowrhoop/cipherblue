@@ -1,6 +1,8 @@
 [Unit]
 Description=Cipherblue Bootloader Lockdown Service
 ConditionPathExists=!/boot/grub2/user.cfg
+# CRITICAL: Prevents Systemd from automatically injecting After=sysinit.target
+DefaultDependencies=no
 After=local-fs.target
 Before=sysinit.target
 
@@ -10,4 +12,5 @@ ExecStart=/usr/libexec/cipherblue/cipher-grub-lockdown.sh
 RemainAfterExit=yes
 
 [Install]
-WantedBy=multi-user.target
+# Bind directly to sysinit so it reliably executes in the early boot transaction
+WantedBy=sysinit.target
