@@ -1,95 +1,94 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
 #
-# CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v3.0 - FINAL)
-# Mathematically sterilizes and locks all user-space execution surfaces.
-# Defends against interactive shells, systemd hijacking, Git/SSH config hooking, 
-# Podman DevContainer escapes, and Flatseal overrides.
+# CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v4.0 - STRICT WHITELIST)
+# Enforces a strict Default-Deny policy on the user's home directory.
+# Purges all unapproved dotfiles/directories and mathematically freezes the 
+# directory nodes to prevent any future creation of non-whitelisted paths.
 
 set -euo pipefail
 source /usr/libexec/cipherblue/cipher-core.sh
 
-cipher_log "Engaging Kernel-Level User Space Sterilization (v3.0)..."
+cipher_log "Engaging v4.0 Strict Whitelist Immutability Engine..."
 
-# Extract true human users
 mapfile -t HUMAN_USERS < <(awk -F: '$3 >= 1000 && $3 != 65534 {print $1}' /etc/passwd)
 
 for user in "${HUMAN_USERS[@]}"; do
     user_home="$(getent passwd "$user" | cut -d: -f6)"
-    
     if [ ! -d "$user_home" ]; then continue; fi
     
-    cipher_log "Sterilizing and locking vectors for user: $user"
+    cipher_log "Executing Great Purge for user: $user"
+
+    # 1. TEMPORARILY UNLOCK EVERYTHING FOR CLEANUP
+    chattr -R -i "$user_home" 2>/dev/null || true
 
     # ========================================================================
-    # 1. FILE TARGETS (Shell, History, Deep Shadow Configs)
+    # 2. THE MASTER WHITELISTS
     # ========================================================================
-    FILE_TARGETS=(
-        "$user_home/.bashrc"
-        "$user_home/.bash_profile"
-        "$user_home/.profile"
-        "$user_home/.bash_logout"
-        "$user_home/.bash_login"
-        "$user_home/.bash_history"       # API Key & Command logging
-        "$user_home/.zshrc"              # ZSH fallback
-        "$user_home/.zprofile"
-        "$user_home/.ssh/authorized_keys" # Remote backdoor
-        "$user_home/.ssh/config"          # SSH LocalCommand/ProxyCommand hijack
-        "$user_home/.gitconfig"           # Git pager/sshCommand hijack
-        "$user_home/.xprofile"            # Display manager hijack
-        "$user_home/.xinitrc"
-        "$user_home/.vimrc"               # Editor script hijack
-        "$user_home/.tmux.conf"           # Multiplexer hijack
-    )
+    ALLOWED_HOME=("Aegis" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var" ".ssh" ".gnupg")
+    ALLOWED_LOCAL=("share" "state")
 
-    for file in "${FILE_TARGETS[@]}"; do
-        if [ -e "$file" ]; then
-            chattr -i "$file" 2>/dev/null || true
-            rm -f "$file"
+    # ========================================================================
+    # 3. PHASE 1: THE HOME DIRECTORY PURGE
+    # ========================================================================
+    # Iterate through ALL files and hidden files. If not on the whitelist, destroy it.
+    find "$user_home" -mindepth 1 -maxdepth 1 | while read -r item; do
+        basename_item=$(basename "$item")
+        if [[ ! " ${ALLOWED_HOME[*]} " =~ " ${basename_item} " ]]; then
+            rm -rf "$item"
         fi
+    done
 
-        parent_dir="$(dirname "$file")"
-        install -D -d -o "$user" -g "$user" -m 700 "$parent_dir"
-
-        skel_file="/etc/skel/$(basename "$file")"
-        if [ -f "$skel_file" ]; then
-            install -D -o "$user" -g "$user" -m 700 "$skel_file" "$file"
-        else
-            install -D -o "$user" -g "$user" -m 700 /dev/null "$file"
-        fi
-
-        chattr +i "$file" 2>/dev/null || true
+    # Reconstruct required whitelist directories with strict permissions
+    for d in "${ALLOWED_HOME[@]}"; do
+        install -d -o "$user" -g "$user" -m 700 "$user_home/$d"
     done
 
     # ========================================================================
-    # 2. DIRECTORY TARGETS (Daemons, GUI, Containers, IPC)
+    # 4. PHASE 2: THE .local DIRECTORY PURGE
     # ========================================================================
-    DIR_TARGETS=(
-        "$user_home/.bashrc.d"
-        "$user_home/.config/environment.d"
-        "$user_home/.config/autostart"             # GUI malware
-        "$user_home/.config/systemd/user"          # Background daemons
-        "$user_home/.config/containers"            # DevContainer host-mount escape
-        "$user_home/.local/share/flatpak/overrides" # Flatseal sandbox bypass
-        "$user_home/.local/share/applications"     # Desktop app shadowing
-        "$user_home/.local/share/dbus-1/services"  # D-Bus IPC activation
-        "$user_home/.local/bin"                    # $PATH binary shadowing
-    )
-
-    for dir in "${DIR_TARGETS[@]}"; do
-        if [ -e "$dir" ]; then
-            chattr -R -i "$dir" 2>/dev/null || true
-            rm -rf "$dir"
+    find "$user_home/.local" -mindepth 1 -maxdepth 1 | while read -r item; do
+        basename_item=$(basename "$item")
+        if [[ ! " ${ALLOWED_LOCAL[*]} " =~ " ${basename_item} " ]]; then
+            rm -rf "$item"
         fi
-
-        install -D -d -o "$user" -g "$user" -m 700 "$dir"
-        chattr +i -R "$dir" 2>/dev/null || true
     done
 
-    # Final hardening of the home directory structure itself
-    chmod 700 "$user_home"
-    chmod 700 "$user_home/.ssh"
+    for d in "${ALLOWED_LOCAL[@]}"; do
+        install -d -o "$user" -g "$user" -m 700 "$user_home/.local/$d"
+    done
+
+    # ========================================================================
+    # 5. PHASE 3: SURGICAL BLACKLISTS INSIDE MUTABLE ZONES (.config)
+    # ========================================================================
+    # .config MUST remain mutable so GNOME and Wayland can function.
+    # However, we must explicitly destroy and freeze the known execution vectors inside it.
+    DANGEROUS_CONFIGS=("autostart" "systemd/user" "environment.d")
+    for dc in "${DANGEROUS_CONFIGS[@]}"; do
+        rm -rf "$user_home/.config/$dc"
+        install -d -o "$user" -g "$user" -m 700 "$user_home/.config/$dc"
+        chattr +i "$user_home/.config/$dc" 2>/dev/null || true
+    done
+
+    # Annihilate Flatseal overrides completely
+    rm -rf "$user_home/.local/share/flatpak/overrides"
+    install -d -o "$user" -g "$user" -m 700 "$user_home/.local/share/flatpak/overrides"
+    chattr +i "$user_home/.local/share/flatpak/overrides" 2>/dev/null || true
+
+    # Lock SSH configuration to prevent ProxyCommand hijacks
+    install -D -o "$user" -g "$user" -m 600 /dev/null "$user_home/.ssh/config"
+    install -D -o "$user" -g "$user" -m 600 /dev/null "$user_home/.ssh/authorized_keys"
+    chattr +i "$user_home/.ssh/config" "$user_home/.ssh/authorized_keys" 2>/dev/null || true
+
+    # ========================================================================
+    # 6. PHASE 4: KERNEL DIRECTORY NODE LOCKDOWN
+    # ========================================================================
+    # We lock the directory nodes themselves. This means NO NEW FILES can be created 
+    # directly inside ~ or ~/.local, but the whitelisted subdirectories remain functional.
+    chattr +i "$user_home"
+    chattr +i "$user_home/.local"
+
 done
 
-cipher_log "User space mathematically sterilized. Absolute Zero-Trust achieved."
+cipher_log "Strict Whitelist architecture successfully enforced."
 exit 0
