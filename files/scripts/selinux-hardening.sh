@@ -69,7 +69,6 @@ sebools_off=(
     xguest_mount_media
     xguest_use_bluetooth
     trivalent_exec_flatpaks
-    xdm_manage_bootloader
 )
 
 # ==============================================================================
