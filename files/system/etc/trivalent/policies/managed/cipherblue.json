@@ -96,6 +96,9 @@
 	"UrlKeyedAnonymizedDataCollectionEnabled": false,
 	"WebRtcEventLogCollectionAllowed": false,
 	"WebRtcIPHandling": "disable_non_proxied_udp",
+	"ProxySettings": {
+		"ProxyMode": "direct"
+	},
 	
 	"ExtensionSettings": {
 		"*": {

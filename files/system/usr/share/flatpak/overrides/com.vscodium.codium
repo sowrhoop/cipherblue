@@ -1,0 +1,21 @@
+# SPDX-License-Identifier: Apache-2.0
+# CIPHERBLUE VSCODIUM ZERO-TRUST WHITELIST
+# Principle of Least Privilege (PoLP) applied to the IDE.
+
+[Context]
+# Network access for extensions and git pushes.
+shared=network;
+
+# Strict Wayland confinement for UI rendering (X11 explicitly dropped).
+sockets=wayland;
+
+# GnuPG (Read-Only) for cryptographically signing Git commits.
+filesystems=xdg-run/gnupg:ro;
+
+# Explicit D-Bus IPC Whitelists
+# Session Bus: Secret Service API (for securely storing GitHub/Azure tokens).
+talk-name=org.freedesktop.secrets;
+
+[Environment]
+# Restores hardware cursor rendering under strict Wayland confinement.
+XCURSOR_PATH=/run/host/user-share/icons:/run/host/share/icons

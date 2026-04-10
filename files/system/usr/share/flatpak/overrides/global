@@ -1,0 +1,28 @@
+# SPDX-License-Identifier: Apache-2.0
+# CIPHERBLUE GLOBAL ZERO-TRUST SANDBOX (DEFAULT DENY)
+# Applies to all applications. Cannot be bypassed by users due to kernel filesystem locks.
+
+[Context]
+# Strip legacy sockets and excessive IPC
+sockets=!x11;!fallback-x11;!session-bus;!system-bus;!ssh-auth;!pcsc;!cups;
+
+# Annihilate host filesystem access globally
+filesystems=!host;!host-etc;!home;!/;/run/user/1000/doc;
+
+# Strip device access (Allowing 'dri' and 'wayland' is required so apps can render visually)
+devices=!all;!shm;!kvm;
+
+# Restrict legacy features
+features=!per-app-dev-shm;!devel;!multiarch;
+
+# OPTIONAL: Uncomment the line below to achieve ABSOLUTE Zero-Trust.
+# This will block the internet for ALL apps. You will have to explicitly 
+# whitelist 'shared=network;' for your browser.
+# shared=!network;!ipc;
+
+[Session Bus Policy]
+# Explicitly block access to dangerous session brokers globally
+org.freedesktop.Flatpak=none
+org.freedesktop.impl.portal.PermissionStore=none
+org.gnome.SessionManager=none
+org.gnome.SettingsDaemon=none
