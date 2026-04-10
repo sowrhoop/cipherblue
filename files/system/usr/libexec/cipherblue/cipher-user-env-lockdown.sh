@@ -21,6 +21,14 @@ ALLOWED_CONFIG=(
     "user-dirs.dirs" "user-dirs.locale" "mimeapps.list" "ibus" 
     "gnome-initial-setup-done" "nautilus" "goa-1.0" "evolution" "trivalent" ".gsd-keyboard.settings-ported"
 )
+ALLOWED_LOCAL_SHARE=(
+    "backgrounds" "evolution" "gnome-settings-daemon" "gnome-shell" 
+    "gvfs-metadata" "ibus-data-booster" "icc" "icons" "keyrings" 
+    "nautilus" "pki" "recently-used.xbel" "sounds" "Trash"
+)
+ALLOWED_LOCAL_STATE=(
+    "lesshst" "wireplumber"
+)
 
 # ========================================================================
 # 2. THE RECONCILIATION FUNCTION
@@ -86,6 +94,8 @@ for user in "${HUMAN_USERS[@]}"; do
     enforce_whitelist "$user_home" "${ALLOWED_HOME[@]}"
     enforce_whitelist "$user_home/.local" "${ALLOWED_LOCAL[@]}"
     enforce_whitelist "$user_home/.config" "${ALLOWED_CONFIG[@]}"
+    enforce_whitelist "$user_home/.local/share" "${ALLOWED_LOCAL_SHARE[@]}"
+    enforce_whitelist "$user_home/.local/state" "${ALLOWED_LOCAL_STATE[@]}"
 
     # ========================================================================
     # 4. SURGICAL BLACKLISTS INSIDE WHITELISTED ZONES
