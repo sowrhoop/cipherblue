@@ -94,6 +94,8 @@ These files exist in our repo. If upstream pushes a file with the exact same nam
 - `files/system/usr/libexec/cipherblue/cipher-user-env-lockdown.sh`
 - `files/system/etc/dbus-1/session-local.d/99-cipherblue-sandbox-lockdown.conf`
 - `files/system/usr/lib/systemd/system/cipher-user-env-lockdown.service`
+- `files/system/usr/share/flatpak/overrides/com.vscodium.codium`
+- `files/system/usr/share/flatpak/overrides/global`
 - `modules/cipherblue-signing/cipherblue-signing.sh`
 - `modules/cipherblue-signing/module.yml`
 - `modules/cipherblue-signing/registry-config.yaml`
