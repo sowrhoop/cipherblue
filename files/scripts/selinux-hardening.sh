@@ -68,7 +68,6 @@ sebools_off=(
     xguest_exec_content
     xguest_mount_media
     xguest_use_bluetooth
-    trivalent_exec_flatpaks
 )
 
 # ==============================================================================

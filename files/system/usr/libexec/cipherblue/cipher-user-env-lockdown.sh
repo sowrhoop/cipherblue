@@ -14,7 +14,7 @@ cipher_log "Engaging v5.0 Dynamic Whitelist Immutability Engine..."
 # ========================================================================
 # 1. THE MASTER DECLARATIVE WHITELISTS
 # ========================================================================
-ALLOWED_HOME=("Aegis" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var")
+ALLOWED_HOME=("Backups" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var")
 ALLOWED_LOCAL=("share" "state")
 ALLOWED_CONFIG=(
     "dconf" "menus" "gtk-3.0" "gtk-4.0" "pulse" "pipewire" 
