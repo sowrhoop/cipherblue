@@ -13,7 +13,7 @@ cipher_log "Engaging v6.1 Architectural Whitelist Immutability Engine..."
 # ========================================================================
 # 1. THE MASTER DECLARATIVE WHITELISTS
 # ========================================================================
-ALLOWED_HOME_DIRS=("Aegis" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var")
+ALLOWED_HOME_DIRS=("Backups" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var")
 ALLOWED_HOME_FILES=(".Xauthority" ".ICEauthority")
 
 ALLOWED_LOCAL_DIRS=("share" "state")
