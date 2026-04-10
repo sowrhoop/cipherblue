@@ -1,34 +1,32 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
 #
-# CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v5.0 - DYNAMIC STRICT WHITELIST)
-# Enforces a strict Default-Deny policy. Recursively unlocks and purges all
-# unapproved files/dotfiles, guarantees the existence of whitelisted paths,
-# and freezes directory nodes globally.
+# CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v6.1 - BLAST RADIUS GUARDRAILS)
+# Implements strict path validation to prevent catastrophic system purges,
+# alongside declarative Directory/File split whitelisting.
 
 set -euo pipefail
 source /usr/libexec/cipherblue/cipher-core.sh
 
-cipher_log "Engaging v5.0 Dynamic Whitelist Immutability Engine..."
+cipher_log "Engaging v6.1 Architectural Whitelist Immutability Engine..."
 
 # ========================================================================
 # 1. THE MASTER DECLARATIVE WHITELISTS
 # ========================================================================
-ALLOWED_HOME=("Backups" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var")
-ALLOWED_LOCAL=("share" "state")
-ALLOWED_CONFIG=(
-    "dconf" "menus" "gtk-3.0" "gtk-4.0" "pulse" "pipewire" 
-    "user-dirs.dirs" "user-dirs.locale" "mimeapps.list" "ibus" 
-    "gnome-initial-setup-done" "nautilus" "goa-1.0" "evolution" "trivalent" ".gsd-keyboard.settings-ported"
-)
-ALLOWED_LOCAL_SHARE=(
-    "backgrounds" "evolution" "gnome-settings-daemon" "gnome-shell" 
-    "gvfs-metadata" "ibus-data-booster" "icc" "icons" "keyrings" 
-    "nautilus" "pki" "recently-used.xbel" "sounds" "Trash"
-)
-ALLOWED_LOCAL_STATE=(
-    "lesshst" "wireplumber"
-)
+ALLOWED_HOME_DIRS=("Aegis" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var")
+ALLOWED_HOME_FILES=(".Xauthority" ".ICEauthority")
+
+ALLOWED_LOCAL_DIRS=("share" "state")
+ALLOWED_LOCAL_FILES=()
+
+ALLOWED_CONFIG_DIRS=("dconf" "menus" "gtk-3.0" "gtk-4.0" "pulse" "pipewire" "ibus" "nautilus" "goa-1.0" "evolution" "trivalent")
+ALLOWED_CONFIG_FILES=("user-dirs.dirs" "user-dirs.locale" "mimeapps.list" "gnome-initial-setup-done" ".gsd-keyboard.settings-ported")
+
+ALLOWED_LOCAL_SHARE_DIRS=("backgrounds" "evolution" "gnome-settings-daemon" "gnome-shell" "gvfs-metadata" "ibus-data-booster" "icc" "icons" "keyrings" "nautilus" "pki" "sounds" "Trash")
+ALLOWED_LOCAL_SHARE_FILES=("recently-used.xbel")
+
+ALLOWED_LOCAL_STATE_DIRS=("wireplumber")
+ALLOWED_LOCAL_STATE_FILES=("lesshst")
 
 # ========================================================================
 # 2. THE RECONCILIATION FUNCTION
@@ -36,21 +34,35 @@ ALLOWED_LOCAL_STATE=(
 enforce_whitelist() {
     local target_dir=$1
     shift
-    local whitelist=("$@")
+    
+    local marker_idx=0
+    local dirs=()
+    local files=()
+    local is_file_mode=0
+
+    for arg in "$@"; do
+        if [[ "$arg" == "---FILES---" ]]; then
+            is_file_mode=1
+            continue
+        fi
+        if [[ $is_file_mode -eq 0 ]]; then
+            dirs+=("$arg")
+        else
+            files+=("$arg")
+        fi
+    done
 
     if [ ! -d "$target_dir" ]; then return 0; fi
-
     cipher_log "Reconciling node: $target_dir"
 
-    # Unlock the parent node to allow internal mutations
     chattr -i "$target_dir" 2>/dev/null || true
 
-    # PHASE A: Detect and Obliterate Unapproved Entities
+    # PHASE A: Detect and Obliterate
     while IFS= read -r -d '' item; do
         basename_item=$(basename "$item")
         
         is_allowed=false
-        for allowed in "${whitelist[@]}"; do
+        for allowed in "${dirs[@]}" "${files[@]}"; do
             if [[ "$basename_item" == "$allowed" ]]; then 
                 is_allowed=true
                 break
@@ -58,26 +70,24 @@ enforce_whitelist() {
         done
 
         if [[ "$is_allowed" == false ]]; then
-            # Strip previous kernel locks before destroying
             chattr -R -i "$item" 2>/dev/null || true
             rm -rf "$item"
         fi
     done < <(find "$target_dir" -mindepth 1 -maxdepth 1 -print0)
 
-    # PHASE B: Guarantee Existence of Whitelisted Entities
-    for allowed in "${whitelist[@]}"; do
-        local full_path="$target_dir/$allowed"
-        if [ ! -e "$full_path" ]; then
-            # Create files for specific extensions, directories for everything else
-            if [[ "$allowed" == *.* && "$allowed" != .* ]]; then
-                install -D -o "$user" -g "$user" -m 600 /dev/null "$full_path"
-            else
-                install -d -o "$user" -g "$user" -m 700 "$full_path"
-            fi
+    # PHASE B: Guarantee Directories
+    for d in "${dirs[@]}"; do
+        install -d -o "$user" -g "$user" -m 700 "$target_dir/$d"
+    done
+
+    # PHASE C: Guarantee Files
+    for f in "${files[@]}"; do
+        if [ ! -f "$target_dir/$f" ]; then
+            install -D -o "$user" -g "$user" -m 600 /dev/null "$target_dir/$f"
         fi
     done
 
-    # PHASE C: Freeze the Directory Node
+    # PHASE D: Freeze Node
     chattr +i "$target_dir" 2>/dev/null || true
 }
 
@@ -88,18 +98,23 @@ mapfile -t HUMAN_USERS < <(awk -F: '$3 >= 1000 && $3 != 65534 {print $1}' /etc/p
 
 for user in "${HUMAN_USERS[@]}"; do
     user_home="$(getent passwd "$user" | cut -d: -f6)"
+    
+    # BLAST RADIUS GUARDRAIL: Only operate on verified user partition paths
+    if [[ "$user_home" != "/home/"* && "$user_home" != "/var/home/"* ]]; then
+        cipher_log "SECURITY GUARD: Skipping invalid/system home directory: $user_home"
+        continue
+    fi
+
     if [ ! -d "$user_home" ]; then continue; fi
 
-    # Apply Whitelists
-    enforce_whitelist "$user_home" "${ALLOWED_HOME[@]}"
-    enforce_whitelist "$user_home/.local" "${ALLOWED_LOCAL[@]}"
-    enforce_whitelist "$user_home/.config" "${ALLOWED_CONFIG[@]}"
-    enforce_whitelist "$user_home/.local/share" "${ALLOWED_LOCAL_SHARE[@]}"
-    enforce_whitelist "$user_home/.local/state" "${ALLOWED_LOCAL_STATE[@]}"
+    enforce_whitelist "$user_home" "${ALLOWED_HOME_DIRS[@]}" "---FILES---" "${ALLOWED_HOME_FILES[@]}"
+    enforce_whitelist "$user_home/.local" "${ALLOWED_LOCAL_DIRS[@]}" "---FILES---" "${ALLOWED_LOCAL_FILES[@]}"
+    enforce_whitelist "$user_home/.config" "${ALLOWED_CONFIG_DIRS[@]}" "---FILES---" "${ALLOWED_CONFIG_FILES[@]}"
+    enforce_whitelist "$user_home/.local/share" "${ALLOWED_LOCAL_SHARE_DIRS[@]}" "---FILES---" "${ALLOWED_LOCAL_SHARE_FILES[@]}"
+    enforce_whitelist "$user_home/.local/state" "${ALLOWED_LOCAL_STATE_DIRS[@]}" "---FILES---" "${ALLOWED_LOCAL_STATE_FILES[@]}"
 
-    # Secure permissions for the home directory root
     chmod 700 "$user_home"
 done
 
-cipher_log "Strict Whitelist architecture successfully enforced."
+cipher_log "Strict Whitelist architecture v6.1 successfully enforced."
 exit 0
