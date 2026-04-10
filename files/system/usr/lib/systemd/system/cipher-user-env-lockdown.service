@@ -1,9 +1,7 @@
 [Unit]
 Description=Cipherblue User Environment Immutability Engine
-# CRITICAL: Prevents Systemd from automatically injecting After=sysinit.target
-DefaultDependencies=no
-After=local-fs.target
-Before=sysinit.target
+# We remove DefaultDependencies=no so systemd handles it normally
+After=local-fs.target systemd-user-sessions.service
 
 [Service]
 Type=oneshot
@@ -11,5 +9,5 @@ ExecStart=/usr/libexec/cipherblue/cipher-user-env-lockdown.sh
 RemainAfterExit=yes
 
 [Install]
-# We bind it directly to sysinit instead of multi-user so it runs at the kernel level
-WantedBy=sysinit.target
+# Bind to multi-user so it runs asynchronously, NEVER blocking the GUI
+WantedBy=multi-user.target
