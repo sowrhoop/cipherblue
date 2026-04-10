@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
 #
-# CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v6.1 - BLAST RADIUS GUARDRAILS)
-# Implements strict path validation to prevent catastrophic system purges,
-# alongside declarative Directory/File split whitelisting.
+# CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v6.2 - SELINUX AWARE)
 
 set -euo pipefail
 source /usr/libexec/cipherblue/cipher-core.sh
 
-cipher_log "Engaging v6.1 Architectural Whitelist Immutability Engine..."
+cipher_log "Engaging v6.2 Architectural Whitelist Immutability Engine..."
 
 # ========================================================================
 # 1. THE MASTER DECLARATIVE WHITELISTS
@@ -35,7 +33,6 @@ enforce_whitelist() {
     local target_dir=$1
     shift
     
-    local marker_idx=0
     local dirs=()
     local files=()
     local is_file_mode=0
@@ -77,13 +74,19 @@ enforce_whitelist() {
 
     # PHASE B: Guarantee Directories
     for d in "${dirs[@]}"; do
-        install -d -o "$user" -g "$user" -m 700 "$target_dir/$d"
+        if [ ! -d "$target_dir/$d" ]; then
+            install -d -o "$user" -g "$user" -m 700 "$target_dir/$d"
+            # CRITICAL: Fix SELinux Context
+            restorecon -F "$target_dir/$d" 2>/dev/null || true
+        fi
     done
 
     # PHASE C: Guarantee Files
     for f in "${files[@]}"; do
         if [ ! -f "$target_dir/$f" ]; then
             install -D -o "$user" -g "$user" -m 600 /dev/null "$target_dir/$f"
+            # CRITICAL: Fix SELinux Context
+            restorecon -F "$target_dir/$f" 2>/dev/null || true
         fi
     done
 
@@ -99,12 +102,9 @@ mapfile -t HUMAN_USERS < <(awk -F: '$3 >= 1000 && $3 != 65534 {print $1}' /etc/p
 for user in "${HUMAN_USERS[@]}"; do
     user_home="$(getent passwd "$user" | cut -d: -f6)"
     
-    # BLAST RADIUS GUARDRAIL: Only operate on verified user partition paths
     if [[ "$user_home" != "/home/"* && "$user_home" != "/var/home/"* ]]; then
-        cipher_log "SECURITY GUARD: Skipping invalid/system home directory: $user_home"
         continue
     fi
-
     if [ ! -d "$user_home" ]; then continue; fi
 
     enforce_whitelist "$user_home" "${ALLOWED_HOME_DIRS[@]}" "---FILES---" "${ALLOWED_HOME_FILES[@]}"
@@ -116,5 +116,5 @@ for user in "${HUMAN_USERS[@]}"; do
     chmod 700 "$user_home"
 done
 
-cipher_log "Strict Whitelist architecture v6.1 successfully enforced."
+cipher_log "Strict Whitelist architecture v6.2 successfully enforced."
 exit 0
