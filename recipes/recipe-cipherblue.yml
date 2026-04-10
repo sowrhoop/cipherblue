@@ -114,8 +114,8 @@ modules:
       - disablenfsdaemons.sh
       - disablesssd.sh
       - disableunconfinedrootfulservices.sh
-      #- systemd-hardening.sh
-      #- selinux-hardening.sh
+      - systemd-hardening.sh
+      - selinux-hardening.sh
       - addimageinfo.sh
       - removeunusedrepos.sh
       - cipherblue-cleanup.sh
