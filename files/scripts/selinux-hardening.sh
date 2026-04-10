@@ -83,6 +83,9 @@ sebools_on=(
 # ==============================================================================
 # 3. ATOMIC COMPILATION ENGINE
 # ==============================================================================
+# We dynamically build a single list of arguments (e.g., bool1=off bool2=on) 
+# so that the policy database is only recompiled once, saving massive CI/CD time.
+
 declare -a SEBOOL_ARGS=()
 
 for bool in "${sebools_off[@]}"; do
