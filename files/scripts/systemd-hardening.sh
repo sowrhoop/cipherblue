@@ -98,14 +98,14 @@ services_to_enable=(
     cipher-cleanup.timer
     cipher-flatpak-update.service
     cipher-flatpak-update.timer
-    cipher-grub-lockdown.service
+    #cipher-grub-lockdown.service
     cipher-kargs-reconciler.service
     cipher-audit-drift.service
     cipher-audit-drift.timer
     cipher-firmware-update.service
     cipher-firmware-update.timer
     cipher-firstboot-init.service
-    cipher-user-env-lockdown.service
+    #cipher-user-env-lockdown.service
 )
 
 for service in "${services_to_enable[@]}"; do
