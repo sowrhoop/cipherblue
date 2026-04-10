@@ -68,8 +68,8 @@ sebools_off=(
     xguest_exec_content
     xguest_mount_media
     xguest_use_bluetooth
-    trivalent_exec_flatpaks # NEW: Prevents browser lateral movement
-    xdm_manage_bootloader   # NEW: Protects GRUB from display manager
+    trivalent_exec_flatpaks
+    xdm_manage_bootloader
 )
 
 # ==============================================================================
@@ -80,7 +80,6 @@ sebools_on=(
     deny_ptrace
     secure_mode
     secure_mode_policyload
-    secure_mode_insmod      # NEW: Blocks kernel rootkit module loading
 )
 
 # ==============================================================================
