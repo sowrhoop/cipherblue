@@ -17,9 +17,9 @@ cipher_log "Engaging v5.0 Dynamic Whitelist Immutability Engine..."
 ALLOWED_HOME=("Aegis" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var" ".ssh" ".gnupg")
 ALLOWED_LOCAL=("share" "state")
 ALLOWED_CONFIG=(
-    "dconf" "containers" "gtk-3.0" "gtk-4.0" "pulse" "pipewire" 
-    "user-dirs.dirs" "user-dirs.locale" "mimeapps.list" "systemd" 
-    "gnome-session" "nautilus" "goa-1.0" "evolution"
+    "dconf" "menus" "gtk-3.0" "gtk-4.0" "pulse" "pipewire" 
+    "user-dirs.dirs" "user-dirs.locale" "mimeapps.list" "ibus" 
+    "gnome-initial-setup-done" "nautilus" "goa-1.0" "evolution" "trivalent" ".gsd-keyboard.settings-ported"
 )
 
 # ========================================================================
