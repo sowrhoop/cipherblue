@@ -10,10 +10,11 @@ fi
 echo "CIPHERBLUE: Unsecured bootloader detected. Initiating GRUB Lockdown..."
 
 # 2. Generate a 128-character mathematically unguessable password
-# - Length: 128
-# - Includes: A-Z, a-z, 0-9, !@#$%^&*
-# - Excludes ambiguous characters: l, 1, I, O, 0
-# - Enforces at least 1 lowercase, 1 uppercase, 1 digit, and 1 special character
+# CRITICAL SRE FIX: Temporarily disable pipefail. 
+# 'tr' reading from /dev/urandom is an infinite stream. 'head' closes the pipe after 128 bytes.
+# This causes 'tr' to receive SIGPIPE and exit with code 141.
+# With 'set -o pipefail' active, this instantly crashed the script!
+set +o pipefail
 while true; do
     RANDOM_PASS=$(tr -dc 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%^&*' < /dev/urandom | head -c 128)
     
@@ -25,10 +26,16 @@ while true; do
         break
     fi
 done
+# Re-enable strict pipe failure detection for the rest of the script
+set -o pipefail
 
 # 3. Feed the password directly into the native Fedora GRUB utility
-# This securely hashes it using PBKDF2 and creates the /boot/grub2/user.cfg file
-echo -e "$RANDOM_PASS\n$RANDOM_PASS" | /usr/sbin/grub2-setpassword
+# CRITICAL SRE FIX: Replaced 'echo -e' pipe with a Here-Doc.
+# Systemd runs without a TTY. 'echo' pipes cause race conditions with interactive wrappers.
+/usr/sbin/grub2-setpassword <<EOF
+$RANDOM_PASS
+$RANDOM_PASS
+EOF
 
 echo "CIPHERBLUE: GRUB successfully locked. rd.break root bypass is now mathematically impossible."
 exit 0
