@@ -68,6 +68,8 @@ sebools_off=(
     xguest_exec_content
     xguest_mount_media
     xguest_use_bluetooth
+    trivalent_exec_flatpaks
+    xdm_manage_bootloader
 )
 
 # ==============================================================================
@@ -83,9 +85,6 @@ sebools_on=(
 # ==============================================================================
 # 3. ATOMIC COMPILATION ENGINE
 # ==============================================================================
-# We dynamically build a single list of arguments (e.g., bool1=off bool2=on) 
-# so that the policy database is only recompiled once, saving massive CI/CD time.
-
 declare -a SEBOOL_ARGS=()
 
 for bool in "${sebools_off[@]}"; do
