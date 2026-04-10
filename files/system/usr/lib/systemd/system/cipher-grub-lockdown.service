@@ -1,16 +1,11 @@
 [Unit]
 Description=Cipherblue Bootloader Lockdown Service
-# Skip execution if the lockdown is already completed
 ConditionPathExists=!/boot/grub2/user.cfg
 After=network.target
 
 [Service]
-Type=oneshot
-# We do not use DefaultDependencies=no here. We WANT standard systemd handling.
+Type=simple
 ExecStart=/usr/libexec/cipherblue/cipher-grub-lockdown.sh
-RemainAfterExit=yes
 
 [Install]
-# Bind to multi-user so it runs silently in the background AFTER the OS boots
-# This guarantees it will never block the GNOME graphical target
 WantedBy=multi-user.target
