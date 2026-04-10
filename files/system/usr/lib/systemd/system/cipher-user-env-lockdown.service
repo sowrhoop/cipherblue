@@ -1,13 +1,11 @@
 [Unit]
 Description=Cipherblue User Environment Immutability Engine
-# We remove DefaultDependencies=no so systemd handles it normally
-After=local-fs.target systemd-user-sessions.service
+After=local-fs.target
 
 [Service]
-Type=oneshot
+Type=simple
 ExecStart=/usr/libexec/cipherblue/cipher-user-env-lockdown.sh
-RemainAfterExit=yes
 
 [Install]
-# Bind to multi-user so it runs asynchronously, NEVER blocking the GUI
+# Fire and forget. Will not block GNOME graphical.target.
 WantedBy=multi-user.target
