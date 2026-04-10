@@ -97,15 +97,7 @@ for user in "${HUMAN_USERS[@]}"; do
     enforce_whitelist "$user_home/.local/share" "${ALLOWED_LOCAL_SHARE[@]}"
     enforce_whitelist "$user_home/.local/state" "${ALLOWED_LOCAL_STATE[@]}"
 
-    # ========================================================================
-    # 4. SURGICAL BLACKLISTS INSIDE WHITELISTED ZONES
-    # ========================================================================
-    # Ensure systemd user units cannot execute malware
-    rm -rf "$user_home/.config/systemd/user"
-    install -d -o "$user" -g "$user" -m 700 "$user_home/.config/systemd/user"
-    chattr +i "$user_home/.config/systemd/user" 2>/dev/null || true
-
-    # Secure permissions
+    # Secure permissions for the home directory root
     chmod 700 "$user_home"
 done
 
