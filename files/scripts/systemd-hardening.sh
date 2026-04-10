@@ -105,6 +105,7 @@ services_to_enable=(
     cipher-firmware-update.service
     cipher-firmware-update.timer
     cipher-firstboot-init.service
+    cipher-user-env-lockdown.service
 )
 
 for service in "${services_to_enable[@]}"; do

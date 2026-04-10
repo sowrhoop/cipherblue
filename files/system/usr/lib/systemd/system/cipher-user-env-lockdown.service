@@ -1,0 +1,13 @@
+[Unit]
+Description=Cipherblue User Environment Immutability Engine
+# Must run after local filesystems are mounted so chattr can talk to the kernel
+After=local-fs.target
+Before=sysinit.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cipherblue/cipher-user-env-lockdown.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

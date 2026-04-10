@@ -49,6 +49,7 @@ TARGETS=(
     "/usr/libexec/cipherblue/cipher-firmware-update.sh"
     "/usr/libexec/cipherblue/cipher-firstboot-init.sh"
     "/usr/libexec/cipherblue/cipher-core.sh"
+    "/usr/libexec/cipherblue/cipher-user-env-lockdown.sh"
 )
 
 for script in "${TARGETS[@]}"; do

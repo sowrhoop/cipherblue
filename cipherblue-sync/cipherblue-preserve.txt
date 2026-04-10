@@ -108,6 +108,9 @@ files/system/usr/libexec/cipherblue/cipher-firmware-update.sh
 files/system/usr/libexec/cipherblue/cipher-firstboot-init.sh
 files/system/usr/lib/systemd/system/cipher-firstboot-init.service
 files/system/usr/libexec/cipherblue/cipher-core.sh
+files/system/usr/libexec/cipherblue/cipher-user-env-lockdown.sh
+files/system/etc/dbus-1/session-local.d/99-cipherblue-sandbox-lockdown.conf
+files/system/usr/lib/systemd/system/cipher-user-env-lockdown.service
 
 # Modules
 
