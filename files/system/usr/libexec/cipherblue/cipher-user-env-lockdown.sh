@@ -14,7 +14,7 @@ cipher_log "Engaging v5.0 Dynamic Whitelist Immutability Engine..."
 # ========================================================================
 # 1. THE MASTER DECLARATIVE WHITELISTS
 # ========================================================================
-ALLOWED_HOME=("Aegis" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var" ".ssh" ".gnupg")
+ALLOWED_HOME=("Aegis" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var")
 ALLOWED_LOCAL=("share" "state")
 ALLOWED_CONFIG=(
     "dconf" "menus" "gtk-3.0" "gtk-4.0" "pulse" "pipewire" 
@@ -95,11 +95,6 @@ for user in "${HUMAN_USERS[@]}"; do
     install -d -o "$user" -g "$user" -m 700 "$user_home/.config/systemd/user"
     chattr +i "$user_home/.config/systemd/user" 2>/dev/null || true
 
-    # Ensure SSH proxy command hooking is mathematically impossible
-    install -D -o "$user" -g "$user" -m 600 /dev/null "$user_home/.ssh/config"
-    install -D -o "$user" -g "$user" -m 600 /dev/null "$user_home/.ssh/authorized_keys"
-    chattr +i "$user_home/.ssh/config" "$user_home/.ssh/authorized_keys" 2>/dev/null || true
-    
     # Secure permissions
     chmod 700 "$user_home"
 done
