@@ -1,18 +1,21 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
 #
-# CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v6.2 - SELINUX AWARE)
+# CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v8.2 - OCCAM'S NODE FREEZE)
+# Mathematically freezes directory nodes to prevent unapproved dotfile creation.
+# Redundant surgical traps have been eliminated in favor of strict parent-node freezing.
 
 set -euo pipefail
 source /usr/libexec/cipherblue/cipher-core.sh
 
-cipher_log "Engaging v6.2 Architectural Whitelist Immutability Engine..."
+cipher_log "Engaging v8.2 Occam's Node Freeze Engine..."
 
 # ========================================================================
 # 1. THE MASTER DECLARATIVE WHITELISTS
+# (Purged of redundant malware traps. Relying strictly on parent node locks.)
 # ========================================================================
 ALLOWED_HOME_DIRS=("Backups" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var")
-ALLOWED_HOME_FILES=(".Xauthority" ".ICEauthority")
+ALLOWED_HOME_FILES=()
 
 ALLOWED_LOCAL_DIRS=("share" "state")
 ALLOWED_LOCAL_FILES=()
@@ -20,7 +23,7 @@ ALLOWED_LOCAL_FILES=()
 ALLOWED_CONFIG_DIRS=("dconf" "menus" "gtk-3.0" "gtk-4.0" "pulse" "pipewire" "ibus" "nautilus" "goa-1.0" "evolution" "trivalent")
 ALLOWED_CONFIG_FILES=("user-dirs.dirs" "user-dirs.locale" "mimeapps.list" "gnome-initial-setup-done" ".gsd-keyboard.settings-ported")
 
-ALLOWED_LOCAL_SHARE_DIRS=("backgrounds" "evolution" "gnome-settings-daemon" "gnome-shell" "gvfs-metadata" "ibus-data-booster" "icc" "icons" "keyrings" "nautilus" "pki" "sounds" "Trash")
+ALLOWED_LOCAL_SHARE_DIRS=("applications" "backgrounds" "evolution" "gnome-settings-daemon" "gnome-shell" "gvfs-metadata" "ibus-data-booster" "icc" "icons" "keyrings" "nautilus" "pki" "sounds" "Trash")
 ALLOWED_LOCAL_SHARE_FILES=("recently-used.xbel")
 
 ALLOWED_LOCAL_STATE_DIRS=("wireplumber")
@@ -52,9 +55,10 @@ enforce_whitelist() {
     if [ ! -d "$target_dir" ]; then return 0; fi
     cipher_log "Reconciling node: $target_dir"
 
+    # Unlock the parent node temporarily
     chattr -i "$target_dir" 2>/dev/null || true
 
-    # PHASE A: Detect and Obliterate
+    # PHASE A: Detect and Obliterate Unapproved Clutter
     while IFS= read -r -d '' item; do
         basename_item=$(basename "$item")
         
@@ -76,7 +80,6 @@ enforce_whitelist() {
     for d in "${dirs[@]}"; do
         if [ ! -d "$target_dir/$d" ]; then
             install -d -o "$user" -g "$user" -m 700 "$target_dir/$d"
-            # CRITICAL: Fix SELinux Context
             restorecon -F "$target_dir/$d" 2>/dev/null || true
         fi
     done
@@ -85,12 +88,11 @@ enforce_whitelist() {
     for f in "${files[@]}"; do
         if [ ! -f "$target_dir/$f" ]; then
             install -D -o "$user" -g "$user" -m 600 /dev/null "$target_dir/$f"
-            # CRITICAL: Fix SELinux Context
             restorecon -F "$target_dir/$f" 2>/dev/null || true
         fi
     done
-
-    # PHASE D: Freeze Node
+    
+    # PHASE D: Freeze the Directory Node (The Absolute Zero-Trust Lock)
     chattr +i "$target_dir" 2>/dev/null || true
 }
 
@@ -102,11 +104,13 @@ mapfile -t HUMAN_USERS < <(awk -F: '$3 >= 1000 && $3 != 65534 {print $1}' /etc/p
 for user in "${HUMAN_USERS[@]}"; do
     user_home="$(getent passwd "$user" | cut -d: -f6)"
     
+    # Blast Radius Guardrail
     if [[ "$user_home" != "/home/"* && "$user_home" != "/var/home/"* ]]; then
         continue
     fi
     if [ ! -d "$user_home" ]; then continue; fi
 
+    # 1. Cleanse and freeze user space nodes
     enforce_whitelist "$user_home" "${ALLOWED_HOME_DIRS[@]}" "---FILES---" "${ALLOWED_HOME_FILES[@]}"
     enforce_whitelist "$user_home/.local" "${ALLOWED_LOCAL_DIRS[@]}" "---FILES---" "${ALLOWED_LOCAL_FILES[@]}"
     enforce_whitelist "$user_home/.config" "${ALLOWED_CONFIG_DIRS[@]}" "---FILES---" "${ALLOWED_CONFIG_FILES[@]}"
@@ -116,5 +120,5 @@ for user in "${HUMAN_USERS[@]}"; do
     chmod 700 "$user_home"
 done
 
-cipher_log "Strict Whitelist architecture v6.2 successfully enforced."
+cipher_log "Occam's Node Freeze Architecture v8.2 successfully enforced."
 exit 0
