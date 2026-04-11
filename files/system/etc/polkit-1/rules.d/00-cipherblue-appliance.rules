@@ -64,6 +64,7 @@ polkit.addRule(function(action, subject) {
             action.id == "org.freedesktop.timedate1.set-ntp" ||
             action.id == "org.freedesktop.timedate1.set-time" ||
             action.id == "org.freedesktop.timedate1.set-timezone" ||
+            action.id == "org.gnome.controlcenter.user-accounts.administration" ||
             action.id == "org.freedesktop.locale1.set-keyboard") {
             
             return polkit.Result.AUTH_ADMIN_KEEP;
@@ -87,7 +88,6 @@ polkit.addRule(function(action, subject) {
         action.id == "org.freedesktop.color-manager.create-device" ||
         action.id == "org.freedesktop.login1.inhibit-handle-power-key" ||
         action.id == "org.opensuse.cupspkhelper.mechanism.all-edit" ||
-        action.id == "org.gnome.controlcenter.user-accounts.administration" ||
         action.id == "org.freedesktop.login1.inhibit-handle-lid-switch" ||
         action.id == "org.freedesktop.login1.inhibit-handle-reboot-key" ||
         action.id == "org.freedesktop.login1.inhibit-handle-suspend-key" ||

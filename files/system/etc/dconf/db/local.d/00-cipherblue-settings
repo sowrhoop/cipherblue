@@ -3,7 +3,7 @@ disable-command-line=true
 disable-printing=true
 disable-print-setup=true
 disable-show-password=true
-user-administration-disabled=true
+user-administration-disabled=false
 
 [org/gnome/shell]
 favorite-apps=['trivalent.desktop', 'org.gnome.Nautilus.desktop', 'com.github.tchx84.Flatseal.desktop']
