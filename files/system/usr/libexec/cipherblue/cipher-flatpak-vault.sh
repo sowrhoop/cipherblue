@@ -64,10 +64,6 @@ for app in "${DESIRED_APPS[@]}"; do
     fi
 done
 
-# ==============================================================================
-# CRITICAL ARCHITECTURAL FIX: Strict Parity with cipher-flatpak-update.sh
-# Unpin any manually or OS-pinned runtimes to enforce absolute GitOps state.
-# ==============================================================================
 cipher_log "Unpinning legacy or OS-pinned runtimes to enforce strict GitOps state..."
 flatpak pin 2>/dev/null | awk 'NR>1 {print $1}' | while read -r pattern; do
     if [[ -n "$pattern" ]]; then
@@ -95,6 +91,25 @@ for u in "${HUMAN_USERS[@]}"; do
         fi
     done
 done
+
+# ==============================================================================
+# CRITICAL ARCHITECTURE FIX: ZERO-TRUST FLATPAK OVERRIDES RECONCILIATION
+# ==============================================================================
+cipher_log "Reconciling Zero-Trust Flatpak Overrides..."
+
+mkdir -p /var/lib/flatpak/overrides
+chattr -R -i /var/lib/flatpak/overrides 2>/dev/null || true
+
+# Annihilate unapproved overrides (Clear the state)
+rm -rf /var/lib/flatpak/overrides/*
+
+# Inject the cryptographically signed overrides from the CI/CD build staging area
+if [ -d "/etc/cipherblue/flatpak-overrides" ] && [ "$(ls -A /etc/cipherblue/flatpak-overrides 2>/dev/null)" ]; then
+    cp -r /etc/cipherblue/flatpak-overrides/* /var/lib/flatpak/overrides/
+fi
+
+# Mathematically freeze the node so neither users nor malware can bypass the firewall
+chattr -R +i /var/lib/flatpak/overrides 2>/dev/null || true
 
 if [ "$changes_made" = true ]; then
     notify_ui "✅ Vault Synchronized" "Applications successfully aligned with your secure cloud state." "emblem-default" "normal"
