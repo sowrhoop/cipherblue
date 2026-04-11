@@ -10,7 +10,8 @@ done
 current_ref=$(rpm-ostree status --booted --json | jq -cr '.deployments[0]."container-image-reference"')
 
 if [[ "$current_ref" != *"ostree-unverified-registry"* ]]; then
-    touch /var/lib/cipherblue-signed-rebase.stamp
+    cipher_log "Production state confirmed. Cryptographic rebase logic safely bypassed."
+    # Removed the imperative .stamp file. We rely entirely on the declarative state of the OS.
     exit 0
 fi
 
@@ -63,7 +64,7 @@ if [ $EXIT_CODE -ne 0 ]; then
     exit 1
 fi
 
-touch /var/lib/cipherblue-signed-rebase.stamp
+# Removed the imperative .stamp file here as well!
 
 while true; do
     active_user=$(get_active_user || true)

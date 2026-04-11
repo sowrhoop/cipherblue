@@ -3,9 +3,9 @@ Description=Cipherblue Cryptographic Signature Enforcer
 After=network-online.target rpm-ostreed.service
 Wants=network-online.target
 
-# CRITICAL: This physically stops the service from running on every boot 
-# once the machine has been successfully rebased to the signed image.
-ConditionPathExists=!/var/lib/cipherblue-signed-rebase.stamp
+# Notice: We removed the imperative ConditionPathExists check.
+# The service now acts as a Continuous Compliance Enforcer on every boot,
+# relying natively on the script's idempotent cryptographic state checks.
 
 [Service]
 Type=simple

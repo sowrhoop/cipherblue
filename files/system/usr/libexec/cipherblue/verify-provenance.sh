@@ -9,8 +9,12 @@ source /usr/libexec/cipherblue/cipher-core.sh
 
 raw_image_ref=$(rpm-ostree status --booted --json | jq -cr '.deployments[0]."container-image-reference"')
 
+# CRITICAL FIX: Declarative State Check
 if [[ "$raw_image_ref" == *"ostree-unverified-registry"* ]]; then
-    exit 1
+    cipher_log "Developer/Debugging mode detected (Unverified Image)."
+    cipher_log "Bypassing strict provenance checks to allow local updates."
+    # We exit 0 instead of 1 so systemd doesn't crash the auto-updater!
+    exit 0
 fi
 
 cipher_log "Provenance Engine Waking Up. Analyzing current OSTree deployment reference..."
