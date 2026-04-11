@@ -65,6 +65,7 @@ polkit.addRule(function(action, subject) {
             action.id == "org.freedesktop.timedate1.set-time" ||
             action.id == "org.freedesktop.timedate1.set-timezone" ||
             action.id == "org.gnome.controlcenter.user-accounts.administration" ||
+            action.id == "org.freedesktop.accounts.user-administration" ||
             action.id == "org.freedesktop.locale1.set-keyboard") {
             
             return polkit.Result.AUTH_ADMIN_KEEP;

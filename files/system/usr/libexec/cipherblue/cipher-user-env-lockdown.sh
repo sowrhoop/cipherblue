@@ -1,13 +1,34 @@
 #!/usr/bin/env bash
 # SPDX-License-Identifier: Apache-2.0
 #
-# CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v8.4 - CASCADING NODE FREEZE)
-# Mathematically freezes directory nodes and targeted configuration files.
+# CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v8.5 - CASCADING NODE FREEZE + GC)
+# Mathematically freezes directory nodes and features Autonomous Garbage Collection.
 
 set -euo pipefail
 source /usr/libexec/cipherblue/cipher-core.sh
 
-cipher_log "Engaging v8.4 Cascading Node Freeze Engine..."
+cipher_log "Engaging v8.5 Cascading Node Freeze Engine..."
+
+# ========================================================================
+# 0. AUTONOMOUS GARBAGE COLLECTION (ORPHANED NODE ANNIHILATION)
+# Removes bloated home directories left behind by GNOME's GUI user deletion.
+# ========================================================================
+cipher_log "Scanning for orphaned user environments..."
+for home_dir in /var/home/*; do
+    if [ ! -d "$home_dir" ]; then continue; fi
+    
+    dir_owner=$(basename "$home_dir")
+    
+    # If the directory name doesn't match an active user in the OS registry
+    if ! getent passwd "$dir_owner" > /dev/null 2>&1; then
+        cipher_log "🗑️ Orphaned user node detected: $home_dir. Initiating Garbage Collection..."
+        # Recursively break all mathematical locks placed by previous runs
+        chattr -R -i "$home_dir" 2>/dev/null || true
+        # Annihilate the bloat
+        rm -rf "$home_dir"
+        cipher_log "Orphaned node $home_dir completely sanitized."
+    fi
+done
 
 # ========================================================================
 # 1. THE MASTER DECLARATIVE WHITELISTS
@@ -124,15 +145,11 @@ for user in "${HUMAN_USERS[@]}"; do
     enforce_whitelist "$user_home/.local/state" "${ALLOWED_LOCAL_STATE_DIRS[@]}" "---FILES---" "${ALLOWED_LOCAL_STATE_FILES[@]}"
     
     # 4. SURGICAL APPLICATION RECONCILIATION
-    # Unlock the file temporarily if it was frozen previously to allow pristine generation
     chattr -i "$user_home/.local/share/applications/mimeapps.list" 2>/dev/null || true
-    
     enforce_whitelist "$user_home/.local/share/applications" "${ALLOWED_APPLICATIONS_DIRS[@]}" "---FILES---" "${ALLOWED_APPLICATIONS_FILES[@]}"
-    
-    # CRITICAL: Mathematically freeze the mimeapps.list file itself
     chattr +i "$user_home/.local/share/applications/mimeapps.list" 2>/dev/null || true
 
 done
 
-cipher_log "Cascading Node Freeze Architecture v8.4 successfully enforced."
+cipher_log "Cascading Node Freeze Architecture v8.5 successfully enforced."
 exit 0
