@@ -3,7 +3,6 @@
 #
 # CIPHERBLUE KERNEL IMMUTABILITY ENGINE (v8.2 - OCCAM'S NODE FREEZE)
 # Mathematically freezes directory nodes to prevent unapproved dotfile creation.
-# Redundant surgical traps have been eliminated in favor of strict parent-node freezing.
 
 set -euo pipefail
 source /usr/libexec/cipherblue/cipher-core.sh
@@ -12,7 +11,6 @@ cipher_log "Engaging v8.2 Occam's Node Freeze Engine..."
 
 # ========================================================================
 # 1. THE MASTER DECLARATIVE WHITELISTS
-# (Purged of redundant malware traps. Relying strictly on parent node locks.)
 # ========================================================================
 ALLOWED_HOME_DIRS=("Backups" "Documents" "Downloads" "Pictures" ".cache" ".config" ".local" ".pki" ".var")
 ALLOWED_HOME_FILES=()
@@ -110,6 +108,11 @@ for user in "${HUMAN_USERS[@]}"; do
     fi
     if [ ! -d "$user_home" ]; then continue; fi
 
+    # CRITICAL FIX: Unlock the home directory first, then secure permissions!
+    # Doing this before the node freezing phases prevents the chmod Catch-22.
+    chattr -i "$user_home" 2>/dev/null || true
+    chmod 700 "$user_home"
+
     # 1. Cleanse and freeze user space nodes
     enforce_whitelist "$user_home" "${ALLOWED_HOME_DIRS[@]}" "---FILES---" "${ALLOWED_HOME_FILES[@]}"
     enforce_whitelist "$user_home/.local" "${ALLOWED_LOCAL_DIRS[@]}" "---FILES---" "${ALLOWED_LOCAL_FILES[@]}"
@@ -117,7 +120,6 @@ for user in "${HUMAN_USERS[@]}"; do
     enforce_whitelist "$user_home/.local/share" "${ALLOWED_LOCAL_SHARE_DIRS[@]}" "---FILES---" "${ALLOWED_LOCAL_SHARE_FILES[@]}"
     enforce_whitelist "$user_home/.local/state" "${ALLOWED_LOCAL_STATE_DIRS[@]}" "---FILES---" "${ALLOWED_LOCAL_STATE_FILES[@]}"
 
-    chmod 700 "$user_home"
 done
 
 cipher_log "Occam's Node Freeze Architecture v8.2 successfully enforced."
