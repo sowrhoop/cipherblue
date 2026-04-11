@@ -32,6 +32,34 @@ jobs:
         with:
           fetch-depth: 1
 
+      # ========================================================================
+      # CIPHERBLUE SECURE VAULT INJECTION (EPHEMERAL)
+      # Securely pulls the overrides directory and stages it in the build context.
+      # ========================================================================
+      - name: Authenticate and Fetch Private Overrides
+        uses: actions/checkout@v4
+        with:
+          repository: sowrhoop/Private-Vault
+          token: ${{ secrets.PRIVATE_VAULT_PAT }}
+          path: private-vault-temp
+          sparse-checkout: |
+            cipherblue/flatpak/overrides
+
+      - name: Inject Overrides into Immutable System Tree
+        run: |
+          echo "CIPHERBLUE: Injecting Zero-Trust Flatpak Overrides..."
+          
+          # 1. Ensure the system-wide destination exists in the runner's build context
+          mkdir -p files/system/etc/flatpak/overrides/
+          
+          # 2. Copy the secure policies into the context tree
+          cp -r private-vault-temp/cipherblue/flatpak/overrides/* files/system/etc/flatpak/overrides/
+          
+          # 3. Shred the temporary vault data from the CI/CD runner
+          rm -rf private-vault-temp
+          
+          echo "CIPHERBLUE: Overrides successfully staged for OS compilation."
+
       - name: Build Cipherblue Image
         id: build
         uses: blue-build/github-action@v1.11.1
