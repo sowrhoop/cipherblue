@@ -64,6 +64,17 @@ for app in "${DESIRED_APPS[@]}"; do
     fi
 done
 
+# ==============================================================================
+# CRITICAL ARCHITECTURAL FIX: Strict Parity with cipher-flatpak-update.sh
+# Unpin any manually or OS-pinned runtimes to enforce absolute GitOps state.
+# ==============================================================================
+cipher_log "Unpinning legacy or OS-pinned runtimes to enforce strict GitOps state..."
+flatpak pin 2>/dev/null | awk 'NR>1 {print $1}' | while read -r pattern; do
+    if [[ -n "$pattern" ]]; then
+        flatpak pin --remove "$pattern" >/dev/null 2>&1 || true
+    fi
+done
+
 cipher_log "Sweeping orphaned system runtimes and leftover cache..."
 flatpak uninstall --system --unused -y --noninteractive --delete-data || true
 
