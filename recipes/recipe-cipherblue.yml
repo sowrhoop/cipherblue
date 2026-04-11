@@ -96,7 +96,6 @@ modules:
     scripts:
       - httpsmirrors.sh
       - set-ld-preload.sh
-      - cipherblue-lock-layering.sh
       - cipherblue-compile-dconf.sh
       - hardened_malloc-pam.sh
       - authselect-hardening.sh
