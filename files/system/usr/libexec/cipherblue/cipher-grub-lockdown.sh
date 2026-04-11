@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 set -euo pipefail
 
-# 1. Check if the lockdown is already active (to prevent regenerating on every boot)
+# 1. Check if the lockdown is already active
 if [ -f /boot/grub2/user.cfg ] || [ -f /boot/efi/EFI/fedora/user.cfg ]; then
     exit 0
 fi
@@ -10,15 +10,11 @@ fi
 echo "CIPHERBLUE: Unsecured bootloader detected. Initiating GRUB Lockdown..."
 
 # 2. Generate a 128-character mathematically unguessable password
-# CRITICAL SRE FIX: Temporarily disable pipefail. 
-# 'tr' reading from /dev/urandom is an infinite stream. 'head' closes the pipe after 128 bytes.
-# This causes 'tr' to receive SIGPIPE and exit with code 141.
-# With 'set -o pipefail' active, this instantly crashed the script!
 set +o pipefail
 while true; do
-    RANDOM_PASS=$(tr -dc 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%^&*' < /dev/urandom | head -c 128)
+    # Added 2>/dev/null to cleanly silence the broken pipe warning from the infinite urandom stream
+    RANDOM_PASS=$(tr -dc 'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%^&*' < /dev/urandom 2>/dev/null | head -c 128)
     
-    # Mathematical verification of the minimum constraints
     if echo "$RANDOM_PASS" | grep -q '[abcdefghijkmnopqrstuvwxyz]' && \
        echo "$RANDOM_PASS" | grep -q '[ABCDEFGHJKLMNPQRSTUVWXYZ]' && \
        echo "$RANDOM_PASS" | grep -q '[23456789]' && \
@@ -26,16 +22,27 @@ while true; do
         break
     fi
 done
-# Re-enable strict pipe failure detection for the rest of the script
 set -o pipefail
 
-# 3. Feed the password directly into the native Fedora GRUB utility
-# CRITICAL SRE FIX: Replaced 'echo -e' pipe with a Here-Doc.
-# Systemd runs without a TTY. 'echo' pipes cause race conditions with interactive wrappers.
-/usr/sbin/grub2-setpassword <<EOF
-$RANDOM_PASS
-$RANDOM_PASS
+echo "CIPHERBLUE: Hashing password securely (bypassing interactive stty trap)..."
+
+# 3. Native Hash Generation
+# We feed the password twice to the native C-binary and extract ONLY the resulting hash
+RAW_OUTPUT=$(echo -e "$RANDOM_PASS\n$RANDOM_PASS" | /usr/bin/grub2-mkpasswd-pbkdf2)
+GRUB_HASH=$(echo "$RAW_OUTPUT" | awk '/grub\.pbkdf2/ {print $NF}')
+
+if [[ -z "$GRUB_HASH" ]]; then
+    echo "CIPHERBLUE: FATAL: Failed to extract GRUB PBKDF2 hash."
+    exit 1
+fi
+
+# 4. Write the immutable config natively
+cat <<EOF > /boot/grub2/user.cfg
+GRUB2_PASSWORD=$GRUB_HASH
 EOF
+
+# Lock permissions to root only
+chmod 600 /boot/grub2/user.cfg
 
 echo "CIPHERBLUE: GRUB successfully locked. rd.break root bypass is now mathematically impossible."
 exit 0
