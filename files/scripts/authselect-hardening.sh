@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# SPDX-License-Identifier: Apache-2.0
 
 set -euo pipefail
 
@@ -16,22 +15,12 @@ pwquality_file="/etc/security/pwquality.conf"
 
 if [ -f "$pwquality_file" ]; then
   uncomment_and_modify "$pwquality_file" "minlen" "15"
-  
-  # CRITICAL UI/UX FIX: 
-  # Using minclass=4 forces the kernel to require Upper, Lower, Number, and Symbol.
-  # We use positive credits (+1) instead of negative so GNOME's visual score bar 
-  # can actually calculate the math and turn Green!
-  uncomment_and_modify "$pwquality_file" "minclass" "4"
-  uncomment_and_modify "$pwquality_file" "dcredit" "1"
-  uncomment_and_modify "$pwquality_file" "ucredit" "1"
-  uncomment_and_modify "$pwquality_file" "lcredit" "1"
-  uncomment_and_modify "$pwquality_file" "ocredit" "1"
-  
+  uncomment_and_modify "$pwquality_file" "dcredit" "-1"
+  uncomment_and_modify "$pwquality_file" "ucredit" "-1"
+  uncomment_and_modify "$pwquality_file" "lcredit" "-1"
+  uncomment_and_modify "$pwquality_file" "ocredit" "-1"
   uncomment_and_modify "$pwquality_file" "maxrepeat" "3"
-  
-  # Dictcheck is completely obsolete for 15+ char passwords and causes UI false positives.
-  uncomment_and_modify "$pwquality_file" "dictcheck" "0" 
-  
+  uncomment_and_modify "$pwquality_file" "dictcheck" "1"
   uncomment_and_modify "$pwquality_file" "usercheck" "1"
   uncomment_and_modify "$pwquality_file" "usersubstr" "5"
   uncomment_and_modify "$pwquality_file" "enforcing" "1"
