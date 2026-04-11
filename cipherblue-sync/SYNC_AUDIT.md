@@ -59,7 +59,6 @@ These files exist in our repo. If upstream pushes a file with the exact same nam
 - `files/system/usr/lib/systemd/system/cipher-mount-enforcer.service`
 - `files/system/usr/libexec/cipherblue/cipher-flatpak-vault.sh`
 - `files/system/etc/systemd/logind.conf.d/99-cipherblue-tty-lockdown.conf`
-- `files/scripts/cipherblue-lock-layering.sh`
 - `files/system/etc/profile.d/99-cipherblue-kill-shell.sh`
 - `files/system/usr/lib/systemd/system/cipher-secure-rebase.service`
 - `files/system/usr/libexec/cipherblue/cipher-secure-rebase.sh`
@@ -94,6 +93,7 @@ These files exist in our repo. If upstream pushes a file with the exact same nam
 - `files/system/usr/libexec/cipherblue/cipher-user-env-lockdown.sh`
 - `files/system/usr/lib/systemd/system/cipher-user-env-lockdown.service`
 - `files/system/etc/systemd/user/xdg-user-dirs.service.d/override.conf`
+- `files/system/etc/rpm-ostreed.conf`
 - `modules/cipherblue-signing/cipherblue-signing.sh`
 - `modules/cipherblue-signing/module.yml`
 - `modules/cipherblue-signing/registry-config.yaml`
