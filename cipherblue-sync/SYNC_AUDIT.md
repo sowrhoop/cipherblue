@@ -93,8 +93,6 @@ These files exist in our repo. If upstream pushes a file with the exact same nam
 - `files/system/usr/libexec/cipherblue/cipher-core.sh`
 - `files/system/usr/libexec/cipherblue/cipher-user-env-lockdown.sh`
 - `files/system/usr/lib/systemd/system/cipher-user-env-lockdown.service`
-- `files/system/usr/share/flatpak/overrides/com.vscodium.codium`
-- `files/system/usr/share/flatpak/overrides/global`
 - `files/system/etc/systemd/user/xdg-user-dirs.service.d/override.conf`
 - `modules/cipherblue-signing/cipherblue-signing.sh`
 - `modules/cipherblue-signing/module.yml`
