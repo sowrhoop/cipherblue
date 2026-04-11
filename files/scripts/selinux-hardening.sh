@@ -70,6 +70,7 @@ sebools_off=(
     xguest_use_bluetooth
     trivalent_exec_flatpaks
     xdm_manage_bootloader
+    trivalent_drm
 )
 
 # ==============================================================================
