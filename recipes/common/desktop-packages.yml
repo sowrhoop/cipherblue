@@ -1,0 +1,68 @@
+# SPDX-FileCopyrightText: Copyright 2025-2026 The Cipherblue Authors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+type: dnf
+source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
+install:
+  install-weak-deps: false
+  packages:
+    - headsetcontrol
+    - mediainfo
+    - bubblejail
+    - usbguard-notifier
+    - usbguard
+    - setools
+    - fscrypt
+    - vim
+    - wl-clipboard
+    - alsa-firmware
+    - fzf
+    - bazaar
+    - homebrew
+    - firewall-config
+
+    # yubikey enablement
+    - pam-u2f
+    - pam_yubico
+    - pamu2fcfg
+    - yubikey-manager
+
+    # ensure universal font coverage
+    - google-noto-fonts-all
+
+    # libvirt/qemu/kvm packages
+    - libvirt
+    - libvirt-nss
+    - qemu-device-display-virtio-gpu
+    - qemu-device-display-virtio-vga
+    - qemu-device-usb-redirect
+    - qemu-img
+    - qemu-kvm
+    - qemu-tools
+    - qemu-user
+    - qemu-user-binfmt
+    - virt-install
+    - virt-manager
+    - virt-viewer
+
+    # ensure MTP support parity
+    - libmtp
+    - gvfs-mtp
+
+remove:
+  packages:
+    - firefox
+    - firefox-langpacks
+    - fuse
+    - passim
+    - fedora-chromium-config
+replace:
+  - from-repo: copr:copr.fedorainfracloud.org:cipherblue:packages
+    packages:
+      - old: fedora-logos
+        new: cipherblue-logos
+  - from-repo: fedora
+    packages:
+      - old: OpenCL-ICD-Loader
+        new: ocl-icd

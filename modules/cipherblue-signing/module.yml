@@ -1,0 +1,4 @@
+name: cipherblue-signing
+shortdesc: The signing module used to install the required signing policies for cosign image verification with rpm-ostree.
+example: |
+  type: cipherblue-signing

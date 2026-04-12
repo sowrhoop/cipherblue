@@ -1,0 +1,20 @@
+{
+  "default": [
+    {
+      "type": "reject"
+    }
+  ],
+  "transports": {
+    "docker": {
+      "ghcr.io/sowrhoop/cipherblue:latest": [
+        {
+          "type": "sigstoreSigned",
+          "keyPath": "/usr/etc/pki/containers/sowrhoop.pub",
+          "signedIdentity": {
+          "type": "matchRepository"
+          }
+        }
+      ]
+    }
+  }
+}

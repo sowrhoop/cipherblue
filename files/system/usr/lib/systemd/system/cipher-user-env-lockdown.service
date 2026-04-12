@@ -1,0 +1,11 @@
+[Unit]
+Description=Cipherblue User Environment Immutability Engine
+After=local-fs.target
+
+[Service]
+Type=simple
+ExecStart=/usr/libexec/cipherblue/cipher-user-env-lockdown.sh
+
+[Install]
+# Fire and forget. Will not block GNOME graphical.target.
+WantedBy=multi-user.target

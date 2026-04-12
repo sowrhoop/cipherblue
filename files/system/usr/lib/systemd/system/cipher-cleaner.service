@@ -1,0 +1,28 @@
+[Unit]
+Description=Cipherblue Cleaning Service
+DefaultDependencies=no
+Before=sysinit.target
+Requires=local-fs.target
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ProtectSystem=full
+ReadWritePaths=/etc/hosts
+NoNewPrivileges=yes
+TimeoutStartSec=0
+RemainAfterExit=yes
+
+# 1. Safely clean temporary shared memory and mqueue
+ExecStart=/usr/bin/find /dev/shm/ -mindepth 1 -delete
+ExecStart=/usr/bin/find /dev/mqueue/ -mindepth 1 -delete
+ExecStart=/usr/bin/find /var/tmp/ -mindepth 1 -delete
+
+# 2. CIPHERBLUE GITOPS HOSTS INJECTOR (Inode-Preserving Engine)
+ExecStart=/usr/bin/sh -c "CONTENT=$$(sed '/# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST/,$$d' /etc/hosts); echo \"$$CONTENT\" > /run/hosts.clean && echo '' >> /run/hosts.clean && echo '# CIPHERBLUE PRIVATE DOMAIN BLOCKLIST' >> /run/hosts.clean && cat /etc/cipherblue/hosts.blocklist >> /run/hosts.clean && cat /run/hosts.clean > /etc/hosts && rm -f /run/hosts.clean"
+
+StandardOutput=null
+StandardError=null
+
+[Install]
+WantedBy=sysinit.target

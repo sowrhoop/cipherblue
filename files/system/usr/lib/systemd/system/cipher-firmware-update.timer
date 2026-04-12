@@ -1,0 +1,10 @@
+[Unit]
+Description=Cipherblue Automated Firmware Timer
+
+[Timer]
+# Check for firmware updates every Wednesday at 05:30 AM
+OnCalendar=Wed *-*-* 05:30:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

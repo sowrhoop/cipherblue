@@ -1,0 +1,75 @@
+name: cipherblue-build
+
+on:
+  schedule:
+    - cron: "00 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bluebuild:
+    name: Build Cipherblue
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+    outputs:
+      IMAGE_DIGEST: ${{ steps.get_digest.outputs.digest }}
+      FULL_IMAGE_REF: ghcr.io/${{ github.repository_owner }}/cipherblue
+    strategy:
+      fail-fast: false
+      matrix:
+        recipe:
+          - recipe-cipherblue.yml
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Build Cipherblue Image
+        id: build
+        uses: blue-build/github-action@v1.11.1
+        env:
+          CIPHERBLUE_BLOCKLIST: ${{ secrets.CIPHERBLUE_BLOCKLIST }}
+          CIPHERBLUE_FLATPAKS: ${{ secrets.CIPHERBLUE_FLATPAKS }}
+          PRIVATE_VAULT_PAT: ${{ secrets.PRIVATE_VAULT_PAT }}
+        with:
+          recipe: ${{ matrix.recipe }}
+          cosign_private_key: ${{ secrets.SIGNING_SECRET }}
+          registry_token: ${{ github.token }}
+          pr_event_number: ${{ github.event.number }}
+          maximize_build_space: false
+          squash: true
+          verify_install: true
+          retry_push_count: 3
+
+      - name: Extract Image Digest
+        id: get_digest
+        run: |
+          echo "CIPHERBLUE: Fetching the mathematical digest of the newly compiled OS..."
+          skopeo login ghcr.io -u ${{ github.actor }} -p ${{ github.token }}
+          DIGEST=$(skopeo inspect docker://ghcr.io/${{ github.repository_owner }}/cipherblue:latest | jq -r '.Digest')
+          echo "Mathematical Digest: $DIGEST"
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
+
+  # ==============================================================================
+  # OFFICIAL SLSA LEVEL 3 PROVENANCE GENERATOR
+  # ==============================================================================
+  provenance:
+    needs: [bluebuild]
+    permissions:
+      actions: read 
+      id-token: write 
+      packages: write 
+    uses: slsa-framework/slsa-github-generator/.github/workflows/generator_container_slsa3.yml@v2.1.0
+    with:
+      image: ${{ needs.bluebuild.outputs.FULL_IMAGE_REF }}
+      digest: ${{ needs.bluebuild.outputs.IMAGE_DIGEST }}
+      registry-username: ${{ github.actor }}
+    secrets:
+      registry-password: ${{ secrets.GITHUB_TOKEN }}

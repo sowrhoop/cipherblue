@@ -1,0 +1,40 @@
+# SPDX-FileCopyrightText: Copyright 2025-2026 The Cipherblue Authors
+#
+# SPDX-License-Identifier: Apache-2.0
+
+type: dnf
+source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
+install:
+  install-weak-deps: false
+  packages:
+    - hardened_malloc
+    - run0edit
+    - dnsconfd-unbound
+
+    # missing upstream
+    - openssl
+    - patch
+    - 7zip-standalone-all
+    - 7zip
+    - distrobox
+    - toolbox
+    - podman
+    - nvme-cli
+    - hdparm
+    - wireguard-tools
+    - gettext
+    - rsync
+    - steam-devices
+
+    # signing deps
+    - sbsigntools
+
+    # address hardened_malloc incompatibilities
+    - no_rlimit_as
+
+    # For use in unprivileged ujust scripts
+    - python3-inquirer
+
+    # provenance deps
+    - crane
+    - slsa-verifier

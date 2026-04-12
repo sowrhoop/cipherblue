@@ -1,0 +1,11 @@
+[Unit]
+Description=Cipherblue Automated App Updater Timer
+
+[Timer]
+# Runs at exactly 6:00 AM local time daily, before your 7 AM gym routine.
+OnCalendar=*-*-* 06:00:00
+# If the laptop was turned off at 6 AM, run it immediately upon booting.
+Persistent=true
+
+[Install]
+WantedBy=timers.target

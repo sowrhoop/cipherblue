@@ -1,0 +1,20 @@
+[Unit]
+Description=Cipherblue Cryptographic Signature Enforcer
+After=network-online.target rpm-ostreed.service
+Wants=network-online.target
+
+# Notice: We removed the imperative ConditionPathExists check.
+# The service now acts as a Continuous Compliance Enforcer on every boot,
+# relying natively on the script's idempotent cryptographic state checks.
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/bash /usr/libexec/cipherblue/cipher-secure-rebase.sh
+
+# If the network drops or rpm-ostree locks up, retry gracefully every 60 seconds
+Restart=on-failure
+RestartSec=60s
+StartLimitIntervalSec=0
+
+[Install]
+WantedBy=multi-user.target

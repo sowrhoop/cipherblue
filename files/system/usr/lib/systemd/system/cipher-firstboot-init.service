@@ -1,0 +1,20 @@
+[Unit]
+Description=Cipherblue Day-0 Initialization Engine
+After=local-fs.target network-online.target
+Requires=local-fs.target network-online.target
+# If this file exists, mathematically skip this service on all future boots
+ConditionPathExists=!/var/lib/cipherblue-init.stamp
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cipherblue/cipher-firstboot-init.sh
+# Drop the lockfile ONLY if the script exits with success code 0
+ExecStartPost=/usr/bin/touch /var/lib/cipherblue-init.stamp
+
+RestartSec=30s
+Restart=on-failure
+RestartMaxDelaySec=1800s
+RestartSteps=10
+
+[Install]
+WantedBy=multi-user.target

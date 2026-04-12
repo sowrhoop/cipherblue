@@ -1,0 +1,7 @@
+[Unit]
+Description=Cipherblue Deep Cleanup Engine
+After=local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cipherblue/cipher-cleanup.sh

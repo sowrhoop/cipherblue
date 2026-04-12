@@ -1,0 +1,14 @@
+[Unit]
+Description=Cipherblue Declarative TOML Kargs Reconciler
+ConditionPathExists=/usr/lib/bootc/kargs.d
+# Ensure D-Bus is running because rpm-ostree requires it to modify the database
+Requires=dbus.service
+After=dbus.service local-fs.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/libexec/cipherblue/cipher-kargs-reconciler.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

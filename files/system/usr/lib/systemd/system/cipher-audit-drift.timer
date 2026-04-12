@@ -1,0 +1,10 @@
+[Unit]
+Description=Cipherblue Configuration Drift Timer
+
+[Timer]
+# Run every day at 04:00 AM
+OnCalendar=*-*-* 04:00:00
+Persistent=true
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,11 @@
+[Unit]
+Description=Cipherblue Bootloader Lockdown Service
+ConditionPathExists=!/boot/grub2/user.cfg
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/libexec/cipherblue/cipher-grub-lockdown.sh
+
+[Install]
+WantedBy=multi-user.target
