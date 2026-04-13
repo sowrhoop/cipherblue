@@ -95,6 +95,8 @@ polkit.addRule(function(action, subject) {
         action.id == "org.freedesktop.accounts.change-own-user-data" ||
         action.id == "org.gnome.controlcenter.user-accounts.administration" ||
         action.id == "org.freedesktop.accounts.user-administration" ||
+        action.id == "org.freedesktop.login1.reboot-ignore-inhibit" ||
+        action.id == "org.freedesktop.login1.power-off-ignore-inhibit" ||
         action.id == "org.freedesktop.NetworkManager.sleep-wake") {
         
         return polkit.Result.NO;
