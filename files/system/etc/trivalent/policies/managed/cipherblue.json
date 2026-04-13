@@ -53,7 +53,6 @@
 	"GenAILocalFoundationalModelSettings": 1,
 	"DevToolsGenAiSettings": 2,
 	"CreateThemesSettings": 2,
-	"BrowserAddPersonEnabled": false,
 	"BrowserGuestModeEnabled": false,
 	"BrowserNetworkTimeQueriesEnabled": false,
 	"BrowserSignin": 0,
@@ -109,10 +108,6 @@
 			"update_url": "https://clients2.google.com/service/update2/crx"
 		},
 		"ddkjiahejlhfcafbddmgiahcphecmpfh": {
-			"installation_mode": "force_installed",
-			"update_url": "https://clients2.google.com/service/update2/crx"
-		},
-		"cnfnlpcnbdfcfamngecfamodlmgmjdod": {
 			"installation_mode": "force_installed",
 			"update_url": "https://clients2.google.com/service/update2/crx"
 		},
