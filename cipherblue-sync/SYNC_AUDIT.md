@@ -511,6 +511,7 @@ These files and directories were completely annihilated from the upstream pull. 
 <details><summary><b>Excluded Rule: <code>files/system/usr/share/bazaar/**</code></b></summary>
 
 ```text
+  - files/system/desktop/usr/share/bazaar/README.md
   - files/system/desktop/usr/share/bazaar/blocklist.yaml
   - files/system/desktop/usr/share/bazaar/curated.yaml
   - files/system/desktop/usr/share/bazaar/main.yaml
