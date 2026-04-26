@@ -137,6 +137,8 @@ These files and directories were completely annihilated from the upstream pull. 
   - .github/workflows/integration_tests/expected-audit-silverblue-main-hardened.txt
   - .github/workflows/integration_tests/validate_systemd_unit_files.sh
   - .github/workflows/iso.yml
+  - .github/workflows/isos/prep_initramfs.sh
+  - .github/workflows/isos/prep_rootfs.sh
   - .github/workflows/justlint.yml
   - .github/workflows/linkspector.yml
   - .github/workflows/pr_build.yml
