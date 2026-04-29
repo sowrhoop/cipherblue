@@ -446,6 +446,7 @@ These files and directories were completely annihilated from the upstream pull. 
   - files/system/desktop/usr/libexec/cipherblue/security-update-notification
   - files/system/desktop/usr/libexec/cipherblue/set_libvirt_daemons.py
   - files/system/desktop/usr/libexec/cipherblue/set_xwayland.py
+  - files/system/desktop/usr/libexec/cipherblue/upgrade-on-boot
   - files/system/usr/libexec/cipherblue-motd
   - files/system/usr/libexec/cipherblue/audit_cipherblue.py
   - files/system/usr/libexec/cipherblue/audit_flatpak/__init__.py
@@ -471,6 +472,7 @@ These files and directories were completely annihilated from the upstream pull. 
   - files/system/usr/libexec/cipherblue/set_container_userns.py
   - files/system/usr/libexec/cipherblue/set_kargs_hardening.py
   - files/system/usr/libexec/cipherblue/set_unconfined_userns.py
+  - files/system/usr/libexec/cipherblue/system-update-available
   - files/system/usr/libexec/cipherblue/toggle_user_motd.py
   - files/system/usr/libexec/cipherblue/utils/__init__.py
   - files/system/usr/libexec/cipherblue/verify-provenance.sh
