@@ -47,23 +47,6 @@ modules:
     scripts:
       - httpsmirrors.sh
 
-  - type: dnf
-    source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
-    install:
-      install-weak-deps: false
-      packages:
-        - hardened_malloc
-        - openssl
-        - patch
-        - sbsigntools
-        - no_rlimit_as
-        - crane
-        - slsa-verifier
-        - gnome-tweaks
-        - tlp
-        - fscrypt
-        - wl-clipboard
-
   - type: script
     source: ghcr.io/blue-build/modules@sha256:079ae754f5b57e8f2ca5850b33a633b3fe1c37f4be51e7b00e9250a997f4e334
     scripts:
