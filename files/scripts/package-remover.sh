@@ -544,3 +544,5 @@ zip
 PKGS
 
 echo "::notice::All specified package categories removed successfully and verified securely."
+
+dnf install -y --setopt=install_weak_deps=False hardened_malloc openssl patch sbsigntools no_rlimit_as crane slsa-verifier gnome-tweaks tlp fscrypt wl-clipboard
