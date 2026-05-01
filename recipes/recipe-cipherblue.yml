@@ -52,9 +52,9 @@ modules:
     scripts:
       - unprotectsudo.sh
       - check-rpm-ostree-version.sh
-      - install-trivalent.sh
       - installselinuxpolicies.sh
       - package-remover.sh
+      - install-trivalent.sh
       - libdnf5-clear-history.sh
 
   - type: rpm-ostree
