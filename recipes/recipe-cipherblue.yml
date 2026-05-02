@@ -59,6 +59,9 @@ modules:
     remove:
       - buildah
       - crun
+      - libdnf5-plugin-appstream
+      - dnf5daemon-server
+      - dnf5daemon-server-polkit
       - dnf5
       - fedora-logos
       - fedora-logos-httpd
