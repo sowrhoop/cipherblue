@@ -68,6 +68,7 @@ modules:
       - fedora-logos-httpd
       - libdnf5
       - libdnf5-cli
+      - python3-dnf
       - sdbus-cpp
       - yajl
 
