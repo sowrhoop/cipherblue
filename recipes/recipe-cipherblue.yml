@@ -94,14 +94,14 @@ modules:
       - removefedoraflatpakremoteservice.sh
       - setchronysysconfig.sh
       - removedkmshelper.sh
-      - disablecups.sh
-      - disablesshd.sh
-      - disableavahidaemon.sh
-      - disablealsastate.sh
-      - disablemodemmanager.sh
-      - disablenfsdaemons.sh
-      - disablesssd.sh
-      - disableunconfinedrootfulservices.sh
+      #- disablecups.sh
+      #- disablesshd.sh
+      #- disableavahidaemon.sh
+      #- disablealsastate.sh
+      #- disablemodemmanager.sh
+      #- disablenfsdaemons.sh
+      #- disablesssd.sh
+      #- disableunconfinedrootfulservices.sh
       - systemd-hardening.sh
       - selinux-hardening.sh
       - addimageinfo.sh
