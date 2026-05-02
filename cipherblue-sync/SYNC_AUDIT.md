@@ -360,7 +360,7 @@ These files and directories were completely annihilated from the upstream pull. 
 <details><summary><b>Excluded Rule: <code>files/system/desktop/etc/tmpfiles.d/homebrew.conf</code></b></summary>
 
 ```text
-  - files/system/desktop/etc/tmpfiles.d/homebrew.conf
+  (No upstream files matched this rule during this sync commit)
 ```
 </details>
 
@@ -593,7 +593,7 @@ These files and directories were completely annihilated from the upstream pull. 
 <details><summary><b>Excluded Rule: <code>files/system/usr/lib/systemd/system/brew-setup-migration.service</code></b></summary>
 
 ```text
-  - files/system/desktop/usr/lib/systemd/system/brew-setup-migration.service
+  (No upstream files matched this rule during this sync commit)
 ```
 </details>
 
