@@ -23,6 +23,7 @@ services_to_disable=(
     avahi-daemon.service
     avahi-daemon.socket
     cups.service
+    cups.socket
     cups-browsed.service
     debug-shell.service
     emergency.service
@@ -48,6 +49,9 @@ services_to_disable=(
     nfs-idmapd.service
     nfs-mountd.service
     nfs-server.service
+    nfs-client.target
+    nfs-blkmap.service
+    nfs-utils.service
     nfsdcld.service
     passim.service
     pcscd.service
@@ -57,14 +61,21 @@ services_to_disable=(
     rpc-statd.service
     rpc-statd-notify.service
     rpcbind.service
+    rpcbind.socket
+    rpcbind.target
+    rpc_pipefs.target
     rpm-ostree-countme.service
     rpm-ostree-countme.timer
     getty@.service
     serial-getty@.service
     smartd.service
     sshd.service
+    sshd.socket
+    sshd-unix-local.socket
+    sshd-keygen.target
     sssd.service
     sssd-kcm.service
+    sssd-kcm.socket
     tailscaled.service
     thermald.service
     uresourced.service
@@ -112,6 +123,8 @@ for service in "${services_to_enable[@]}"; do
     echo " -> Enabling $service"
     systemctl enable "$service" >/dev/null 2>&1 || true
 done
+
+systemctl mask --user uresourced.service
 
 echo "CIPHERBLUE: Systemd states mathematically locked into immutable image."
 exit 0
