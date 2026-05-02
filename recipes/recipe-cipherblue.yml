@@ -60,6 +60,7 @@ modules:
       - buildah
       - crun
       - libdnf5-plugin-appstream
+      - dnf-data
       - dnf5daemon-server
       - dnf5daemon-server-polkit
       - dnf5
