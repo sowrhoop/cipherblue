@@ -50,6 +50,7 @@ polkit.addRule(function(action, subject) {
             action.id == "org.freedesktop.login1.suspend" ||
             action.id == "org.freedesktop.udisks2.rescan" ||
             action.id == "org.freedesktop.udisks2.open-device" ||
+            action.id == "com.endlessm.ParentalControls.SessionLimits.ReadOwn" ||
             action.id == "com.endlessm.ParentalControls.AppFilter.ReadOwn") {
             
             return polkit.Result.YES;
@@ -97,6 +98,7 @@ polkit.addRule(function(action, subject) {
         action.id == "org.freedesktop.accounts.user-administration" ||
         action.id == "org.freedesktop.login1.reboot-ignore-inhibit" ||
         action.id == "org.freedesktop.login1.power-off-ignore-inhibit" ||
+        action.id == "org.freedesktop.MalcontentControl.administration" ||
         action.id == "org.freedesktop.NetworkManager.sleep-wake") {
         
         return polkit.Result.NO;
